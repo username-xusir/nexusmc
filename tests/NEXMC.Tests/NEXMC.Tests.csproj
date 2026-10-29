@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit.v3" Version="3.2.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Nexmc.Kernel/Nexmc.Kernel.vbproj" />
+    <Compile Include="../../src/NEXMC/Services/InstallInputValidator.cs" Link="InstallInputValidator.cs" />
+    <Compile Include="../../src/NEXMC/Services/NexmcContracts.cs" Link="NexmcContracts.cs" />
+    <Compile Include="../../src/NEXMC/Services/MinecraftVersionClassifier.cs" Link="MinecraftVersionClassifier.cs" />
+    <Compile Include="../../src/NEXMC/Services/InstallVerifier.cs" Link="InstallVerifier.cs" />
+    <Compile Include="../../src/NEXMC/Services/BbsmcCaptchaHelper.cs" Link="BbsmcCaptchaHelper.cs" />
+    <Compile Include="../../src/NEXMC/Services/LauncherDetector.cs" Link="LauncherDetector.cs" />
+    <Compile Include="../../src/NEXMC/Services/JsonSettingsService.cs" Link="JsonSettingsService.cs" />
+    <Compile Include="../../src/NEXMC/Services/InstallRetryPolicy.cs" Link="InstallRetryPolicy.cs" />
+    <Compile Include="../../src/NEXMC/Models/InstallTaskItem.cs" Link="InstallTaskItem.cs" />
+  </ItemGroup>
+</Project>

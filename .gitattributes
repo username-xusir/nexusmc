@@ -1,0 +1,21 @@
+* text=auto
+
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.dll binary
+*.exe binary
+*.zip binary
+
+*.cs text
+*.vb text
+*.xaml text
+*.md text
+*.yml text
+*.json text
+*.props text
+*.csproj text
+*.vbproj text
+*.sln text
+*.ps1 text

@@ -1,0 +1,26 @@
+# Build outputs
+bin/
+obj/
+publish/
+dist/
+artifacts/
+TestResults/
+
+# Node / packaging
+node_modules/
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Local toolchain and references (not part of the source repo)
+tools/
+references/
+
+# IDE / OS
+.vs/
+.vscode/
+*.user
+*.suo
+*.swp
+Thumbs.db
+Desktop.ini

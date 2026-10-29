@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>MeloongCore</AssemblyName>
+    <RootNamespace>MeloongCore</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.2" />
+    <Compile Include="DrawingCompatibility.cs" />
+    <Compile Include="Upstream/Shared/**/*.cs" LinkBase="Shared" />
+    <Compile Include="Upstream/Wpf/**/*.cs" LinkBase="Wpf" />
+    <Using Include="System.ComponentModel" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Diagnostics.CodeAnalysis" />
+    <Using Include="System.Net" />
+    <Using Include="System.IO" />
+    <Using Include="System.Text" />
+    <Using Include="System.Collections.Concurrent" />
+    <Using Include="System.Runtime.CompilerServices" />
+    <Using Include="System.Runtime.InteropServices" />
+    <Using Include="MeloongCore" />
+    <Using Include="MeloongCore.Extensions" />
+    <Using Include="MeloongCore.Wpf" />
+    <Using Include="MeloongCore.Wpf.Extensions" />
+  </ItemGroup>
+</Project>

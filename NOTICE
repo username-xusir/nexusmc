@@ -1,0 +1,44 @@
+NEXMC / nexusmc 1.0.7
+=====================
+
+NEXMC 是第三方基于 PCL 下载组件独立进行二次创作的产物，不是 PCL 官方版本，也不由 PCL、HMCL、BBSMC、Modrinth 或 CurseForge 官方背书。
+
+License scope / 许可证范围
+-------------------------
+
+1. NEXMC 原创文件（应用外壳、界面、NEXMC 门面、服务层、测试、构建脚本等）
+   使用根目录 LICENSE 中的 MIT License。
+2. `src/Nexmc.Kernel/Upstream/**` 中的 PCL 下载与安装组件来自 PCL 2.12.7.3，
+   不属于 MIT 授权范围。它们保留 PCL 原作者的权利与署名，并随仓库附带
+   `licenses/PCL-LICENCE.txt`。公开分发或再分发前，请自行确认 PCL 原作者的授权范围。
+3. 其他第三方组件见 `THIRD_PARTY_LICENSES.md` 与 `licenses/`。
+
+Credits / 鸣谢
+--------------
+
+- 龙腾猫跃（LTCat）— PCL2 下载内核作者
+  https://github.com/Meloong-Git/PCL
+  https://afdian.com/a/LTCat
+- username-xusir — NEXMC 开发者
+  https://github.com/username-xusir
+- huogoooo — NEXMC 内测人员
+
+PCL source / 固定版本
+---------------------
+
+PCL: https://github.com/Meloong-Git/PCL
+Version: 2.12.7.3 / 1b4d1296e7485a7406f580f92061019d41f9fbec
+MeloongCore: https://github.com/Meloong-Git/MeloongCore
+Commit: 1910e9656793b1c9ce45be4f70b4fcbbff5b8aef
+
+NEXMC 只保留了 PCL 的下载、Range、多源、校验与安装编排模块，并替换应用外壳、
+配置与资源读取，加入 NEXMC 门面、目标安装适配和 BBSMC 在线来源。
+没有打包 PCL 或 HMCL 启动器本体，也没有复制 HMCL 源码。
+
+Trademarks / 商标与素材
+-----------------------
+
+Minecraft 及相关素材的权利归 Mojang / Microsoft 及其权利人。
+NEXMC 不包含游戏账号、破解或付费内容。
+NEXMC 不使用 PCL/HMCL 的名称、图标或应用素材作为自身品牌。
+BBSMC 仅作为公开在线来源接入，不代表与 BBSMC 存在隶属或背书关系。

@@ -1,0 +1,29 @@
+appId: com.nexmc.downloader
+productName: NEXMC
+copyright: "NEXMC contributors. Contains PCL download components; see NOTICE."
+directories:
+  output: dist/installer
+  buildResources: build
+artifactName: NEXMC-Setup-${version}.${ext}
+win:
+  icon: assets/nexmc.ico
+  signAndEditExecutable: false
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: NEXMC
+  uninstallDisplayName: NEXMC
+  runAfterFinish: false
+  deleteAppDataOnUninstall: false
+  installerLanguages:
+    - zh_CN
+  license: LICENSE
+compression: maximum

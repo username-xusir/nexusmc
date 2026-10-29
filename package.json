@@ -1,0 +1,27 @@
+{
+  "name": "nexmc-build-tools",
+  "version": "1.0.7",
+  "private": true,
+  "license": "MIT",
+  "description": "NEXMC asset and offline installer build tools",
+  "author": "username-xusir",
+  "productName": "NEXMC",
+  "scripts": {
+    "assets": "bun run scripts/render-assets.mjs",
+    "installer": "electron-builder --config build/electron-builder.yml --prepackaged publish/NEXMC --win nsis"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0",
+    "png-to-ico": "3.0.2",
+    "sharp": "0.35.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username-xusir/nexusmc.git"
+  },
+  "homepage": "https://github.com/username-xusir/nexusmc",
+  "bugs": {
+    "url": "https://github.com/username-xusir/nexusmc/issues"
+  }
+}

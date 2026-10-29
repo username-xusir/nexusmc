@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NEXMC</AssemblyName>
+    <RootNamespace>NEXMC</RootNamespace>
+    <ApplicationIcon>../../assets/nexmc.ico</ApplicationIcon>
+    <Version>1.0.7</Version>
+    <Product>NEXMC</Product>
+    <Description>NEXMC (nexusmc) Minecraft and modpack downloader</Description>
+    <Copyright>NEXMC contributors; contains PCL download components, see NOTICE</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Nexmc.Kernel/Nexmc.Kernel.vbproj" />
+    <Reference Include="Imazen.WebP"><HintPath>../Nexmc.Kernel/lib/Imazen.WebP.dll</HintPath></Reference>
+    <Resource Include="../../assets/logo.png" Link="assets/logo.png" />
+    <Resource Include="../../assets/logo-white.png" Link="assets/logo-white.png" />
+    <Resource Include="../../assets/logo-desktop.png" Link="assets/logo-desktop.png" />
+    <Resource Include="../../assets/badge.png" Link="assets/badge.png" />
+    <Resource Include="../../assets/badge-light.png" Link="assets/badge-light.png" />
+    <Resource Include="../../assets/badge-white.png" Link="assets/badge-white.png" />
+    <Resource Include="../../assets/hall/*.png" Link="assets/hall/%(Filename)%(Extension)" />
+    <Resource Include="../../assets/nexmc.ico" Link="assets/nexmc.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="../../README.md" Link="README.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../NOTICE" Link="NOTICE" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../THIRD_PARTY_LICENSES.md" Link="THIRD_PARTY_LICENSES.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../licenses/**/*" Link="licenses/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../assets/logo-desktop.png" Link="assets/logo-desktop.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+</Project>
+
