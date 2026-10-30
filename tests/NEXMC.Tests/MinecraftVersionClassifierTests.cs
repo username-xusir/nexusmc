@@ -17,6 +17,19 @@ public sealed class MinecraftVersionClassifierTests
     }
 
     [Theory]
+    [InlineData("26.3", true)]
+    [InlineData("26.4-snapshot-6", true)]
+    [InlineData("26w03a", false)]
+    [InlineData("1.21.4", false)]
+    [InlineData("1.20.1", false)]
+    [InlineData("25w14a", false)]
+    [InlineData("b1.7.3", false)]
+    public void YearBasedVersionsAreDetected(string id, bool expected)
+    {
+        Assert.Equal(expected, MinecraftVersionClassifier.IsYearBased(id));
+    }
+
+    [Theory]
     [InlineData("15w14a")]
     [InlineData("1.RV-Pre1")]
     [InlineData("3D Shareware v1.34")]

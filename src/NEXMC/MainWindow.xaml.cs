@@ -356,6 +356,21 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         return choice.Targets;
     }
 
+    private static string? FindVersionConflict(IReadOnlyList<LauncherOption> targets, string instanceName)
+    {
+        foreach (var target in targets)
+        {
+            var versionDirectory = Path.Combine(target.Directory, "versions", instanceName);
+            if (File.Exists(Path.Combine(versionDirectory, instanceName + ".json")) ||
+                (Directory.Exists(versionDirectory) &&
+                 Directory.EnumerateFileSystemEntries(versionDirectory).Any()))
+            {
+                return versionDirectory;
+            }
+        }
+        return null;
+    }
+
     private bool IsDownloadOnlyMode =>
         string.Equals((DownloadModeComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString(),
             "local", StringComparison.OrdinalIgnoreCase);
@@ -375,7 +390,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             throw new ArgumentException("仅下载模式需要先在设置里选择本地保存文件夹。");
         }
 
-        Directory.CreateDirectory(directory);
+        // 目录创建交给后台的 DownloadOnlyAsync；这里只做路径校验，避免网络盘/移动盘在 UI 线程卡住。
         return new[]
         {
             new LauncherOption("local-download", "仅下载到本地", LauncherKind.Generic, directory, null, false)
@@ -1566,12 +1581,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             }
             else
             {
-                var conflict = SelectedLaunchers()
-                    .Select(target => Path.Combine(target.Directory, "versions", nameDialog.InstanceName))
-                    .FirstOrDefault(versionDirectory =>
-                        File.Exists(Path.Combine(versionDirectory, nameDialog.InstanceName + ".json")) ||
-                        (Directory.Exists(versionDirectory) &&
-                         Directory.EnumerateFileSystemEntries(versionDirectory).Any()));
+                var targets = SelectedLaunchers();
+                var conflict = await Task.Run(() => FindVersionConflict(targets, nameDialog.InstanceName));
                 if (conflict is not null)
                 {
                     ShowError("命名整合包", new InvalidOperationException(
@@ -1672,7 +1683,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             _captchaRetryTask = null;
             ClearErrorBanner();
             ShowStatus($"{(request.DownloadOnly ? "正在下载" : "正在安装")}：{task.Title}", false);
-            await _service.InstallAsync(request, progress, cancellation.Token);
+            // 内核入口里可能有同步的设置锁和目录操作；放到后台线程，避免点击下载后 UI 线程被堵死。
+            await Task.Run(() => _service.InstallAsync(request, progress, cancellation.Token), cancellation.Token);
             if (task.Cancellation.IsCancellationRequested)
             {
                 task.CompleteCancellation();
@@ -1746,7 +1758,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     private void ShowInstallCompleteWindow(InstallTaskItem task)
     {
         var window = new InstallCompleteWindow(task) { Owner = this };
-        window.ShowDialog();
+        // 安装已经完成，不再用模态窗口锁住主界面；即使用户把结果窗口移到屏幕外，主窗口仍可操作。
+        window.Show();
     }
 
     private void AddTask(InstallTaskItem task)

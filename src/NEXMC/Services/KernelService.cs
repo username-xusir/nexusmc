@@ -272,13 +272,26 @@ public sealed class KernelService : INexmcService
             !string.IsNullOrWhiteSpace(request.MinecraftVersion))
         {
             var probeTarget = request.Targets.FirstOrDefault()?.Id ?? "local-download";
-            progress.Report(new TargetProgress(probeTarget, 0, "正在检查国内镜像是否已同步该版本…", null));
-            if (!await IsMirrorMetadataReachableAsync(ct))
+            // 26.x 起 Minecraft 改用年份版本号。BMCLAPI 对这些版本不是缓存文件，
+            // 而是把每个文件都 302 到一个慢速第三方 CDN；5000 多个资源逐个跳转
+            // 会让安装长时间停在 60% 左右。这类版本直接走官方源才是正确线路。
+            if (MinecraftVersionClassifier.IsYearBased(request.MinecraftVersion))
             {
                 forcedOfficial = true;
                 ApplyDownloadSource("official");
                 progress.Report(new TargetProgress(probeTarget, 0,
-                    "国内镜像缺少该版本元数据，已自动改用官方源。", null));
+                    "26.x 版本的国内镜像会逐文件跳转到慢速 CDN，已自动改用官方源。", null));
+            }
+            else
+            {
+                progress.Report(new TargetProgress(probeTarget, 0, "正在检查国内镜像是否已同步该版本…", null));
+                if (!await IsMirrorMetadataReachableAsync(ct))
+                {
+                    forcedOfficial = true;
+                    ApplyDownloadSource("official");
+                    progress.Report(new TargetProgress(probeTarget, 0,
+                        "国内镜像缺少该版本元数据，已自动改用官方源。", null));
+                }
             }
         }
 
@@ -467,13 +480,14 @@ public sealed class KernelService : INexmcService
         var directory = (request.DownloadDirectory ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(directory) || !Path.IsPathFullyQualified(directory))
             throw new ArgumentException("请先在设置里选择“仅下载到本地”的保存文件夹。");
-        Directory.CreateDirectory(directory);
 
         var targetId = request.Targets.FirstOrDefault()?.Id ?? "local-download";
         await Task.Run(async () =>
         {
             try
             {
+                // 网络盘、移动盘或权限异常时，目录创建可能很慢；不能放在 UI 线程。
+                Directory.CreateDirectory(directory);
                 progress.Report(new TargetProgress(targetId, 0, "准备下载到本地", null));
                 if (isModpack)
                 {
@@ -530,8 +544,8 @@ public sealed class KernelService : INexmcService
     }
 
     /// <summary>
-    /// 检查 BMCLAPI 的版本元数据是否可用。新版本（例如 26.x）的 manifest 路径
-    /// 在镜像上可能还是 404；先探测可以在安装前直接切官方源，避免内核反复重试十几次。
+    /// 检查 BMCLAPI 的版本元数据是否可用。旧版本的 manifest 路径在镜像上可能 404；
+    /// 先探测可以在安装前直接切官方源，避免内核反复重试十几次。
     /// </summary>
     private static async Task<bool> IsMirrorMetadataReachableAsync(CancellationToken ct)
     {
@@ -545,7 +559,7 @@ public sealed class KernelService : INexmcService
         {
             using var request = new HttpRequestMessage(HttpMethod.Get,
                 "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
-            request.Headers.UserAgent.ParseAdd("NEXMC/1.0.8");
+            request.Headers.UserAgent.ParseAdd("NEXMC/1.0.9");
             using var response = await MirrorProbeClient.SendAsync(request,
                 HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
             ok = response.IsSuccessStatusCode;

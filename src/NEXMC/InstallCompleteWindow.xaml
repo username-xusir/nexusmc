@@ -5,7 +5,7 @@
         WindowBackdropType="Mica"
         ExtendsContentIntoTitleBar="True"
         Title="NEXMC · 安装结果" Width="590" SizeToContent="Height"
-        MinHeight="280" MaxHeight="620" WindowStartupLocation="CenterOwner"
+        MinHeight="280" MaxHeight="620" WindowStartupLocation="CenterScreen"
         Background="{StaticResource PageBrush}" ResizeMode="NoResize">
     <Grid Margin="26">
         <Border Style="{StaticResource Card}" Padding="24">

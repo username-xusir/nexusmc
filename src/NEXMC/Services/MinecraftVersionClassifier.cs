@@ -38,6 +38,14 @@ public static class MinecraftVersionClassifier
         };
     }
 
+    /// <summary>Minecraft 26.x 起使用年份版本号（26.3、26.4-snapshot-6）。</summary>
+    public static bool IsYearBased(string? versionId)
+    {
+        if (string.IsNullOrWhiteSpace(versionId) || versionId.Length < 3) return false;
+        var value = versionId.Trim();
+        return char.IsDigit(value[0]) && char.IsDigit(value[1]) && value[2] == '.';
+    }
+
     public static bool IsAprilFools(string versionId)
     {
         if (AprilFoolsVersions.Contains(versionId))

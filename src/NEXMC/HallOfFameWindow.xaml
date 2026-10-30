@@ -8,7 +8,7 @@
         ResizeMode="NoResize"
         WindowBackdropType="Mica"
         ExtendsContentIntoTitleBar="True"
-        WindowStartupLocation="CenterOwner"
+        WindowStartupLocation="CenterScreen"
         Background="{StaticResource PageBrush}"
         Icon="pack://application:,,,/assets/nexmc.ico">
     <Grid>

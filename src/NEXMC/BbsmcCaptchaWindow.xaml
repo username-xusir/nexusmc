@@ -4,7 +4,7 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="BBSMC 人机验证 · NEXMC"
         Width="1050" Height="780" MinWidth="760" MinHeight="520"
-        WindowStartupLocation="CenterOwner"
+        WindowStartupLocation="CenterScreen"
         Background="{StaticResource PageBrush}"
         Loaded="Window_Loaded">
     <Grid>
