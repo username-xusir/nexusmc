@@ -79,7 +79,7 @@
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="nexus mc" Foreground="White" FontFamily="Segoe UI Variable Display, Microsoft YaHei UI, Segoe UI" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         <Border Background="#22FFFFFF" CornerRadius="5" Padding="6,1" HorizontalAlignment="Left" Margin="0,3,0,0">
-                            <TextBlock x:Name="BrandVersionText" Text="v1.0.7" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
+                            <TextBlock x:Name="BrandVersionText" Text="v1.0.8" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
@@ -756,7 +756,7 @@
 
             <Border x:Name="StatusBorder" Grid.Row="3" Background="#F2F2F2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                 <DockPanel Margin="16,0">
-                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.0.7 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.0.8 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                     <TextBlock x:Name="LauncherTargetStateText" DockPanel.Dock="Right" Text="正在扫描启动器…" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" MaxWidth="400" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="16,0,0,0"/>
                     <TextBlock x:Name="StatusText" Text="正在准备界面…" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </DockPanel>

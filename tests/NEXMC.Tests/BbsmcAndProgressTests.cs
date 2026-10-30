@@ -41,6 +41,25 @@ public sealed class BbsmcAndProgressTests
     }
 
     [Fact]
+    public void CaptchaRetryResetsAFailedTaskInsteadOfLeavingItFailed()
+    {
+        var target = new LauncherOption("pcl", "PCL", LauncherKind.PCL2, @"C:\pcl\.minecraft", null, false);
+        var task = new InstallTaskItem("captcha retry", new[] { target });
+        task.Report(new TargetProgress("pcl", 0, "BBSMC 人机验证", false));
+        task.Complete();
+        Assert.False(task.Targets[0].Success);
+
+        task.MarkRetried();
+        Assert.True(task.IsRunning);
+        Assert.Null(task.Targets[0].Success);
+        Assert.Equal("验证通过，正在重新安装…", task.OverallStatus);
+
+        task.Report(new TargetProgress("pcl", 1, "安装完成，校验通过", true));
+        task.Complete();
+        Assert.True(task.IsAllSuccess);
+    }
+
+    [Fact]
     public void MissingTargetResultIsStillReported()
     {
         var targets = new[]

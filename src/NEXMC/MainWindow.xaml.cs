@@ -38,6 +38,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     private string _modpackFilterKey = string.Empty;
     private string? _bbsmcHelpUrl;
     private bool _captchaWindowOpen;
+    private InstallRequest? _captchaRetryRequest;
+    private InstallTaskItem? _captchaRetryTask;
+    private double _modpackListScrollOffset;
     private CancellationTokenSource? _versionsCancellation;
     private CancellationTokenSource? _loadersCancellation;
     private CancellationTokenSource? _searchCancellation;
@@ -533,12 +536,26 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ErrorBanner.Visibility = Visibility.Visible;
     }
 
-    private bool ShowBbsmcHelpIfNeeded(InstallRequest request, string failureText)
+    private bool ShowBbsmcHelpIfNeeded(InstallRequest request, string failureText, InstallTaskItem? task = null)
     {
-        if (!BbsmcCaptchaHelper.IsCaptchaFailure(failureText))
+        if (!BbsmcCaptchaHelper.IsCaptchaFailure(failureText) ||
+            (string.IsNullOrWhiteSpace(request.ModpackProjectId) &&
+             string.IsNullOrWhiteSpace(request.LocalModpackPath)))
         {
             return false;
         }
+
+        // 验证通过后浏览器会把文件下载到本地；此时用本地包自动补装失败的目标，
+        // 不再让用户看着一个已经失败的任务手动点第二次安装。
+        var failedTargetIds = task?.Targets
+            .Where(item => item.Success != true)
+            .Select(item => item.Option.Id)
+            ?? Enumerable.Empty<string>();
+        _captchaRetryRequest = request with
+        {
+            Targets = InstallRetryRequestFactory.SelectTargets(request, failedTargetIds)
+        };
+        _captchaRetryTask = task;
 
         var project = request.ModpackProjectId is null
             ? null
@@ -557,7 +574,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     private void ErrorOpenBbsmc_Click(object sender, RoutedEventArgs e) => OpenBbsmcCaptchaWindow();
 
-    private void OpenBbsmcCaptchaWindow()
+    private async void OpenBbsmcCaptchaWindow()
     {
         if (_captchaWindowOpen || _isClosing)
         {
@@ -567,6 +584,10 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         _captchaWindowOpen = true;
         try
         {
+            var retryRequest = _captchaRetryRequest;
+            var retryTask = _captchaRetryTask;
+            _captchaRetryRequest = null;
+            _captchaRetryTask = null;
             var url = string.IsNullOrWhiteSpace(_bbsmcHelpUrl) ? "https://bbsmc.net/" : _bbsmcHelpUrl;
             var window = new BbsmcCaptchaWindow(url) { Owner = this };
             var result = window.ShowDialog();
@@ -574,7 +595,14 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             {
                 if (ApplyLocalModpackPath(window.DownloadedPath))
                 {
-                    ShowStatus("BBSMC 文件已下载完成，已切换为本地整合包；确认实例名后点击“安装整合包”。", false);
+                    if (retryRequest is not null && !_isClosing)
+                    {
+                        await StartCaptchaRetryAsync(retryRequest, window.DownloadedPath, retryTask);
+                    }
+                    else
+                    {
+                        ShowStatus("BBSMC 文件已下载完成，已切换为本地整合包；确认实例名后点击“安装整合包”。", false);
+                    }
                 }
             }
         }
@@ -586,6 +614,33 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         {
             _captchaWindowOpen = false;
         }
+    }
+
+    private async Task StartCaptchaRetryAsync(InstallRequest retryRequest, string downloadedPath,
+        InstallTaskItem? retryTask)
+    {
+        var localRequest = InstallRetryRequestFactory.CreateLocalRetry(
+            retryRequest, downloadedPath, retryRequest.Targets.Select(target => target.Id));
+        InstallTaskItem task;
+        // 全部目标都失败时复用原任务，让它从“失败”变为“重新安装”再变为成功；
+        // 如果已有目标成功，则不重置成功目标，另建一个只包含失败目标的任务。
+        if (retryTask is not null && !retryTask.Cancellation.IsCancellationRequested &&
+            retryTask.Targets.All(target => target.Success != true))
+        {
+            task = retryTask;
+            task.MarkRetried();
+        }
+        else
+        {
+            var title = $"{localRequest.InstanceName} · {Path.GetFileName(downloadedPath)}" +
+                        (localRequest.DownloadOnly ? " · 仅下载" : "");
+            task = new InstallTaskItem(title, localRequest.Targets, localRequest.DownloadOnly);
+            AddTask(task);
+        }
+        TasksNav.IsChecked = true;
+        ShowTasksPage();
+        ShowStatus("BBSMC 验证通过，文件已下载，正在自动继续安装…", false);
+        await RunInstallAsync(task, localRequest);
     }
 
     private void ErrorChooseLocal_Click(object sender, RoutedEventArgs e)
@@ -1194,12 +1249,38 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         ModpackListView.Visibility = Visibility.Visible;
         ModpackVersionView.Visibility = Visibility.Collapsed;
+
+        // 版本页回来时列表会被重新布局；等布局完成后再恢复原来的滚动位置。
+        var offset = _modpackListScrollOffset;
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            if (ModpackListView.Visibility != Visibility.Visible) return;
+            ModpackProjectsList.UpdateLayout();
+            FindScrollViewer(ModpackProjectsList)?.ScrollToVerticalOffset(offset);
+        }));
     }
 
     private void ShowModpackVersionView()
     {
+        // 只从列表页进入版本页时记录位置；版本页内部再次调用不能把记录覆盖成 0。
+        if (ModpackListView.Visibility == Visibility.Visible)
+        {
+            var viewer = FindScrollViewer(ModpackProjectsList);
+            if (viewer is not null) _modpackListScrollOffset = viewer.VerticalOffset;
+        }
         ModpackListView.Visibility = Visibility.Collapsed;
         ModpackVersionView.Visibility = Visibility.Visible;
+    }
+
+    private static ScrollViewer? FindScrollViewer(DependencyObject root)
+    {
+        if (root is ScrollViewer scrollViewer) return scrollViewer;
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
+        {
+            var found = FindScrollViewer(VisualTreeHelper.GetChild(root, index));
+            if (found is not null) return found;
+        }
+        return null;
     }
 
     private void BackToModpackList_Click(object sender, RoutedEventArgs e)
@@ -1587,6 +1668,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
         try
         {
+            _captchaRetryRequest = null;
+            _captchaRetryTask = null;
             ClearErrorBanner();
             ShowStatus($"{(request.DownloadOnly ? "正在下载" : "正在安装")}：{task.Title}", false);
             await _service.InstallAsync(request, progress, cancellation.Token);
@@ -1608,7 +1691,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             {
                 var details = task.ResultDetails();
                 ShowStatus($"{(request.DownloadOnly ? "下载未全部完成" : "安装未全部成功")}：{task.Title}{Environment.NewLine}{details}", true);
-                if (ShowBbsmcHelpIfNeeded(request, details))
+                if (ShowBbsmcHelpIfNeeded(request, details, task))
                 {
                     // 只要命中 BBSMC 人机验证就自动弹窗，即使其他启动器已安装成功。
                     Dispatcher.BeginInvoke(new Action(OpenBbsmcCaptchaWindow));
@@ -1627,7 +1710,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             task.Fail(exception);
             var details = task.ResultDetails();
             ShowStatus($"{(request.DownloadOnly ? "下载失败" : "安装失败")}：{exception.GetBaseException().Message}{Environment.NewLine}{details}", true);
-            if (ShowBbsmcHelpIfNeeded(request, exception + Environment.NewLine + details))
+            if (ShowBbsmcHelpIfNeeded(request, exception + Environment.NewLine + details, task))
             {
                 Dispatcher.BeginInvoke(new Action(OpenBbsmcCaptchaWindow));
             }

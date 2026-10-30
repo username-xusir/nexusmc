@@ -36,6 +36,7 @@ internal static class Program
         bool concurrentMetadataFixture = args.Contains("--concurrent-metadata", StringComparer.OrdinalIgnoreCase);
         bool fabricFixture = args.Contains("--fabric-fixture", StringComparer.OrdinalIgnoreCase);
         bool neoforgeFixture = args.Contains("--neoforge-fixture", StringComparer.OrdinalIgnoreCase);
+        bool mirrorFixture = args.Contains("--mirror-fixture", StringComparer.OrdinalIgnoreCase);
         try
         {
             KernelFacade.Initialize();
@@ -43,7 +44,7 @@ internal static class Program
             {
                 try
                 {
-                    exitCode = await Task.Run(() => concurrentMetadataFixture ? ConcurrentMetadataFixture() : downloadOnlyFixture ? InstallDownloadOnlyFixture() : dualFixture ? InstallDualFixture() : assetSourcesFixture ? ShowAssetSources() : iconFixture ? VerifyIconDecode() : netdiskFixture ? InspectModpackExternal() : fabricFixture ? InstallFabricFixture() : neoforgeFixture ? InstallNeoForgeFixture() : bbsmcFixture ? InstallBbsmcFixture() : retryFixture ? RunRetryFixture() : modrinthFixture ? InstallModrinthFixture() : allOfCreateFixture ? InstallAllOfCreateFixture() : vanillaFixture ? InstallVanillaFixture() : encodingFixture ? VerifyEncodingFixture() : forgeFixture ? InstallForgeFixture() : allSources ? SearchAllSources() : searchCategories ? SearchCategories() : listLaunchers ? ListLaunchers() : installFixture ? InstallFixture() : VerifySources());
+                    exitCode = await Task.Run(() => mirrorFixture ? InstallMirrorFixture(args) : concurrentMetadataFixture ? ConcurrentMetadataFixture() : downloadOnlyFixture ? InstallDownloadOnlyFixture() : dualFixture ? InstallDualFixture() : assetSourcesFixture ? ShowAssetSources() : iconFixture ? VerifyIconDecode() : netdiskFixture ? InspectModpackExternal() : fabricFixture ? InstallFabricFixture() : neoforgeFixture ? InstallNeoForgeFixture() : bbsmcFixture ? InstallBbsmcFixture() : retryFixture ? RunRetryFixture() : modrinthFixture ? InstallModrinthFixture() : allOfCreateFixture ? InstallAllOfCreateFixture() : vanillaFixture ? InstallVanillaFixture() : encodingFixture ? VerifyEncodingFixture() : forgeFixture ? InstallForgeFixture() : allSources ? SearchAllSources() : searchCategories ? SearchCategories() : listLaunchers ? ListLaunchers() : installFixture ? InstallFixture() : VerifySources());
                 }
                 catch (Exception exception)
                 {
@@ -228,6 +229,59 @@ internal static class Program
         Console.WriteLine("VANILLA_OK");
         Console.WriteLine($"SMOKE_ROOT={root}");
         return 0;
+    }
+
+    /// <summary>用指定的下载线路安装原版；用于复现镜像线路在新版本上的卡住问题。</summary>
+    private static int InstallMirrorFixture(string[] args)
+    {
+        var index = Array.FindIndex(args, arg => arg.Equals("--mirror-fixture", StringComparison.OrdinalIgnoreCase));
+        var version = index >= 0 && index + 1 < args.Length && !args[index + 1].StartsWith("--", StringComparison.Ordinal)
+            ? args[index + 1]
+            : "26.3";
+        var source = args.Contains("--official", StringComparer.OrdinalIgnoreCase) ? "official" : "mirror";
+        var useService = args.Contains("--service", StringComparer.OrdinalIgnoreCase);
+        var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..",
+            "artifacts", $"mirror-{source}-{version}-" + stamp));
+        var minecraft = Path.Combine(root, ".minecraft");
+        Directory.CreateDirectory(minecraft);
+        var instance = $"nexmc-{source}-{version}".Replace(' ', '-');
+        Action<double, string> report = (value, message) =>
+            Console.WriteLine($"{DateTime.Now:HH:mm:ss} {value:P1} {message}");
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(30));
+        try
+        {
+            if (useService)
+            {
+                var service = new KernelService();
+                service.UpdateSettings(new UiSettings
+                {
+                    GameDownloadSource = source,
+                    DownloadThreads = 16,
+                    RetryAttempts = 2,
+                    RetryDelaySeconds = 2
+                });
+                var target = new LauncherOption("mirror-target", "镜像测试", LauncherKind.Generic, minecraft, null, false);
+                var request = new InstallRequest(instance, version, null, null, null, null, null, new[] { target });
+                service.InstallAsync(request, new Progress<TargetProgress>(update =>
+                    report(update.Progress, $"[{update.Target}] {update.Message}")), cancellation.Token)
+                    .GetAwaiter().GetResult();
+            }
+            else
+            {
+                KernelFacade.ApplyDownloadPreferences(source == "official" ? 2 : 0, source == "official" ? 2 : 0, 16, 0);
+                KernelFacade.InstallVanilla(instance, version, "", "", minecraft, report, cancellation.Token);
+            }
+            VerifyInstalledFixture(minecraft, instance);
+            Console.WriteLine($"MIRROR_OK source={source} version={version} service={useService}");
+            Console.WriteLine($"SMOKE_ROOT={root}");
+            return 0;
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine($"MIRROR_FAIL source={source} version={version} service={useService}: {exception.GetBaseException().Message}");
+            return 1;
+        }
     }
 
     private static void VerifyInstalledFixture(string minecraft, string instance)

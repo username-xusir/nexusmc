@@ -113,6 +113,20 @@ public sealed class InstallTargetTaskItem : INotifyPropertyChanged
         }
     }
 
+    /// <summary>BBSMC 验证完成后，把已经失败的目标恢复为“等待重新安装”。</summary>
+    public void MarkRetried()
+    {
+        _isCancelled = false;
+        _isQueued = false;
+        Progress = 0;
+        Success = null;
+        Message = "验证通过，正在重新安装…";
+        OnPropertyChanged(nameof(Message));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(IsProgressVisible));
+        OnPropertyChanged(nameof(IsSuccess));
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -180,6 +194,17 @@ public sealed class InstallTaskItem : INotifyPropertyChanged
         if (!IsRunning) return;
         OverallStatus = "排队中";
         foreach (var target in Targets) target.MarkQueued();
+    }
+
+    /// <summary>把失败任务重新置为运行态，用于 BBSMC 验证完成后的自动续装。</summary>
+    public void MarkRetried()
+    {
+        _isCancellationRequested = false;
+        IsRunning = true;
+        OverallStatus = "验证通过，正在重新安装…";
+        foreach (var target in Targets) target.MarkRetried();
+        OnPropertyChanged(nameof(CanCancel));
+        OnPropertyChanged(nameof(IsAllSuccess));
     }
 
     public void RequestCancel()

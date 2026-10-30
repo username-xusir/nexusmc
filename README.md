@@ -5,7 +5,7 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](https://dotnet.microsoft.com/)
 [![Windows](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4.svg)](#系统要求)
-[![Version](https://img.shields.io/badge/version-1.0.7-black.svg)](docs/1.0.7-更新说明.md)
+[![Version](https://img.shields.io/badge/version-1.0.8-black.svg)](docs/1.0.8-更新说明.md)
 
 > NEXMC 是第三方二次创作，不是 PCL 官方版本。PCL 下载组件的版权归龙腾猫跃所有，详见 [NOTICE](NOTICE) 与 [licenses/PCL-LICENCE.txt](licenses/PCL-LICENCE.txt)。
 
@@ -22,8 +22,9 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 - **多任务**：可连续添加多个安装/下载任务，任务显示「排队中」；PCL 内核按顺序执行以避免全局路径冲突。
 - **进度反馈**：完成后隐藏进度条，显示绿色对勾；失败/取消不显示。
 - **仅网盘版本**：有网盘链接时打开夸克/迅雷等链接，没有则打开项目介绍页；不绕过登录或验证。
-- **BBSMC 人机验证**：命中验证时自动弹出内置 WebView2 窗口，完成后自动切换为本地整合包。
-- **下载线路**：默认优先官方源，失败回退 BMCLAPI；可设置线程数、限速、重试次数/间隔；连续 180 秒无进度会中断重试。
+- **BBSMC 人机验证**：命中验证时自动弹出内置 WebView2 窗口；验证并下载完成后自动用本地包继续安装。
+- **下载线路**：默认优先官方源，失败回退 BMCLAPI；镜像缺少新版本元数据时自动改用官方源；下载大文件时按缓存字节数判断是否真的卡死，不会因为进度不动而误中断；可设置线程数、限速、重试次数/间隔。
+- **浏览位置**：从整合包版本页返回列表时保留原来的滚动位置。
 - **校验**：安装完成后校验版本 JSON、客户端 JAR、libraries、assets。
 - **名人堂**：设置页可查看鸣谢。
 
@@ -36,18 +37,20 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 安装包已放在本仓库根目录：
 
 ```text
-NEXMC-Setup-1.0.7.exe
-NEXMC-Setup-1.0.7.sha256.txt
+NEXMC-Setup-1.0.8.exe
+NEXMC-Setup-1.0.8.sha256.txt
 ```
 
-1. 运行 `NEXMC-Setup-1.0.7.exe`，按向导安装到当前用户目录，无需管理员权限。
+1. 运行 `NEXMC-Setup-1.0.8.exe`，按向导安装到当前用户目录，无需管理员权限。
 2. 从开始菜单或桌面快捷方式启动。
 3. 顶部下拉框选择安装目标；找不到启动器时点 `+`，选择启动器 EXE 或 `.minecraft` 目录。
 4. 需要校验安装包时：
 
 ```powershell
-Get-FileHash .\NEXMC-Setup-1.0.7.exe -Algorithm SHA256
+Get-FileHash .\NEXMC-Setup-1.0.8.exe -Algorithm SHA256
 ```
+
+安装包是 self-contained 构建，已经包含 .NET 10 运行时；普通用户安装后直接运行，不需要另外安装 .NET。只有从源码编译时才需要 .NET 10 SDK。
 
 安装包未购买代码签名，Windows SmartScreen 显示「未知发布者」属于预期现象。
 
@@ -81,7 +84,7 @@ bun install
 powershell -ExecutionPolicy Bypass -File build/package.ps1
 ```
 
-`package.ps1` 会优先使用 `tools\dotnet\dotnet.exe`（如果存在），否则使用 PATH 中的 `dotnet`。产物在 `dist\installer\NEXMC-Setup-1.0.7.exe`。
+`package.ps1` 会优先使用 `tools\dotnet\dotnet.exe`（如果存在），否则使用 PATH 中的 `dotnet`。产物在 `dist\installer\NEXMC-Setup-1.0.8.exe`。
 
 ## 项目结构
 

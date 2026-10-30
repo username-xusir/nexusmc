@@ -1,6 +1,6 @@
 {
   "name": "nexmc-build-tools",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "license": "MIT",
   "description": "NEXMC asset and offline installer build tools",

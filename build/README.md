@@ -33,7 +33,7 @@ dotnet publish src\NEXMC\NEXMC.csproj -c Release -r win-x64 --self-contained tru
 ```powershell
 powershell -ExecutionPolicy Bypass -File build\package.ps1
 ```
-产物：`dist/installer/NEXMC-Setup-1.0.7.exe`。
+产物：`dist/installer/NEXMC-Setup-1.0.8.exe`。
 
 说明：NEXMC 本体是 .NET WPF 程序；这里只把 electron-builder 的 NSIS 目标当作通用 Windows 安装器打包器，安装内容完全是自包含 .NET 发布目录，不包含 Electron 运行时，也不打包 PCL2/HMCL。
 

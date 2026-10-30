@@ -20,6 +20,7 @@
     <Compile Include="../../src/NEXMC/Services/LauncherDetector.cs" Link="LauncherDetector.cs" />
     <Compile Include="../../src/NEXMC/Services/JsonSettingsService.cs" Link="JsonSettingsService.cs" />
     <Compile Include="../../src/NEXMC/Services/InstallRetryPolicy.cs" Link="InstallRetryPolicy.cs" />
+    <Compile Include="../../src/NEXMC/Services/InstallRetryRequestFactory.cs" Link="InstallRetryRequestFactory.cs" />
     <Compile Include="../../src/NEXMC/Models/InstallTaskItem.cs" Link="InstallTaskItem.cs" />
   </ItemGroup>
 </Project>
