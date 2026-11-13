@@ -39,6 +39,9 @@
 
             <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
+            <!-- Windows 10 只有 Segoe MDL2 Assets，Windows 11 才自带 Segoe Fluent Icons。 -->
+            <FontFamily x:Key="SymbolFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
             <Style TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="Segoe UI Variable, Microsoft YaHei UI, Segoe UI"/>
                 <Setter Property="TextWrapping" Value="Wrap"/>

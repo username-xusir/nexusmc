@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using NEXMC.Services;
 
 namespace NEXMC;
 
@@ -28,14 +28,7 @@ public partial class HallOfFameWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
-        try
-        {
-            Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
-        }
-        catch
-        {
-            // 打不开浏览器时不影响鸣谢页继续使用。
-        }
+        ExternalBrowser.Open(uri.AbsoluteUri, this);
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();

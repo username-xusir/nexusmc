@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Web.WebView2.Core;
+using NEXMC.Services;
 
 namespace NEXMC;
 
@@ -70,18 +70,27 @@ public partial class BbsmcCaptchaWindow : Window
         }
         catch (Exception exception)
         {
-            StatusText.Text = "内嵌浏览器初始化失败，请点击“外部浏览器打开”完成验证并下载。";
             Browser.Visibility = Visibility.Collapsed;
-            var details = new TextBlock
+            LegacyBrowser.Visibility = Visibility.Visible;
+            try
             {
-                Text = exception.GetBaseException().Message,
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(14, 8, 14, 8)
-            };
-            if (Content is Grid grid)
+                LegacyBrowser.Navigate(_url);
+                StatusText.Text = "WebView2 不可用，已切换到系统兼容浏览器；如果验证页无法使用，请点击“外部浏览器打开”。";
+            }
+            catch
             {
-                Grid.SetRow(details, 1);
-                grid.Children.Add(details);
+                StatusText.Text = "内嵌浏览器初始化失败，请点击“外部浏览器打开”完成验证并下载。";
+                var details = new TextBlock
+                {
+                    Text = exception.GetBaseException().Message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(14, 8, 14, 8)
+                };
+                if (Content is Grid grid)
+                {
+                    Grid.SetRow(details, 1);
+                    grid.Children.Add(details);
+                }
             }
         }
     }
@@ -159,19 +168,23 @@ public partial class BbsmcCaptchaWindow : Window
             return;
         }
 
+        if (LegacyBrowser.Visibility == Visibility.Visible)
+        {
+            LegacyBrowser.Navigate(_url);
+            return;
+        }
         Browser.CoreWebView2?.Navigate(_url);
     }
 
     private void External_Click(object sender, RoutedEventArgs e)
     {
-        try
+        if (ExternalBrowser.Open(_url, this))
         {
-            Process.Start(new ProcessStartInfo(_url) { UseShellExecute = true });
-            StatusText.Text = "已在外部浏览器打开；下载完成后可用“选择本地整合包”导入。";
+            StatusText.Text = "已在浏览器打开；下载完成后可用“选择本地整合包”导入。";
         }
-        catch (Exception exception)
+        else
         {
-            StatusText.Text = "打开外部浏览器失败：" + exception.GetBaseException().Message;
+            StatusText.Text = "没有可用的默认浏览器，链接已复制到剪贴板。";
         }
     }
 

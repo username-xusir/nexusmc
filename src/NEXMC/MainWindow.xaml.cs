@@ -1881,16 +1881,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     private void OpenBbsmc_Click(object sender, RoutedEventArgs e)
     {
-        try
+        if (!ExternalBrowser.OpenBuiltIn("https://bbsmc.net/", this))
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://bbsmc.net/")
-            {
-                UseShellExecute = true
-            });
-        }
-        catch (Exception exception)
-        {
-            ShowError("打开 BBSMC", exception);
+            ShowError("打开 BBSMC", new InvalidOperationException("内置浏览器启动失败，链接已复制到剪贴板。"));
         }
     }
 
@@ -1919,19 +1912,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return false;
         }
 
-        try
+        if (ExternalBrowser.Open(uri.AbsoluteUri, this))
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri.AbsoluteUri)
-            {
-                UseShellExecute = true
-            });
             return true;
         }
-        catch (Exception exception)
-        {
-            ShowError(title, exception);
-            return false;
-        }
+
+        ShowError(title, new InvalidOperationException("没有可用的浏览器，链接已复制到剪贴板。"));
+        return false;
     }
 
     private void OpenModpackPage_Click(object sender, RoutedEventArgs e)
@@ -1944,16 +1931,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
-        try
+        if (!ExternalBrowser.Open(uri.AbsoluteUri, this))
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri.AbsoluteUri)
-            {
-                UseShellExecute = true
-            });
-        }
-        catch (Exception exception)
-        {
-            ShowError("打开整合包介绍页", exception);
+            ShowError("打开整合包介绍页", new InvalidOperationException("没有可用的浏览器，链接已复制到剪贴板。"));
         }
     }
 

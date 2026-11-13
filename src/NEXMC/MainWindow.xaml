@@ -33,25 +33,25 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                     <RadioButton x:Name="GameNav" GroupName="MainNavigation" Style="{StaticResource TopNavigationButton}" IsChecked="True" Tag="Game" Checked="Navigation_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE896;" FontFamily="Segoe Fluent Icons" FontSize="15" Margin="0,0,7,0"/>
+                            <TextBlock Text="&#xE896;" FontFamily="{StaticResource SymbolFont}" FontSize="15" Margin="0,0,7,0"/>
                             <TextBlock Text="游戏下载" FontSize="13" FontWeight="SemiBold"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="ModpackNav" GroupName="MainNavigation" Style="{StaticResource TopNavigationButton}" Tag="Modpack" Checked="Navigation_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE7B8;" FontFamily="Segoe Fluent Icons" FontSize="15" Margin="0,0,7,0"/>
+                            <TextBlock Text="&#xE7B8;" FontFamily="{StaticResource SymbolFont}" FontSize="15" Margin="0,0,7,0"/>
                             <TextBlock Text="整合包" FontSize="13" FontWeight="SemiBold"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="TasksNav" GroupName="MainNavigation" Style="{StaticResource TopNavigationButton}" Tag="Tasks" Checked="Navigation_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE9D9;" FontFamily="Segoe Fluent Icons" FontSize="15" Margin="0,0,7,0"/>
+                            <TextBlock Text="&#xE9D9;" FontFamily="{StaticResource SymbolFont}" FontSize="15" Margin="0,0,7,0"/>
                             <TextBlock Text="下载任务" FontSize="13" FontWeight="SemiBold"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="SettingsNav" GroupName="MainNavigation" Style="{StaticResource TopNavigationButton}" Tag="Settings" Checked="Navigation_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="15" Margin="0,0,7,0"/>
+                            <TextBlock Text="&#xE713;" FontFamily="{StaticResource SymbolFont}" FontSize="15" Margin="0,0,7,0"/>
                             <TextBlock Text="设置" FontSize="13" FontWeight="SemiBold"/>
                         </StackPanel>
                     </RadioButton>
@@ -67,10 +67,10 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <Button x:Name="RefreshLaunchersButton" Width="34" Height="34" MinHeight="34" Padding="0" Margin="6,0,0,0" Style="{StaticResource SecondaryButton}" Click="RefreshLaunchers_Click" ToolTip="重新扫描启动器">
-                        <TextBlock Text="&#xE72C;" FontFamily="Segoe Fluent Icons" FontSize="14" Foreground="{StaticResource BlueBrush}"/>
+                        <TextBlock Text="&#xE72C;" FontFamily="{StaticResource SymbolFont}" FontSize="14" Foreground="{StaticResource BlueBrush}"/>
                     </Button>
                     <Button x:Name="AddLauncherButton" Width="34" Height="34" MinHeight="34" Padding="0" Margin="6,0,0,0" Style="{StaticResource SecondaryButton}" Click="AddLauncher_Click" ToolTip="添加新的启动器" AutomationProperties.Name="添加启动器">
-                        <TextBlock Text="&#xE710;" FontFamily="Segoe Fluent Icons" FontSize="14" Foreground="{StaticResource BlueBrush}"/>
+                        <TextBlock Text="&#xE710;" FontFamily="{StaticResource SymbolFont}" FontSize="14" Foreground="{StaticResource BlueBrush}"/>
                     </Button>
                 </StackPanel>
 
@@ -79,20 +79,20 @@
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="nexus mc" Foreground="White" FontFamily="Segoe UI Variable Display, Microsoft YaHei UI, Segoe UI" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         <Border Background="#22FFFFFF" CornerRadius="5" Padding="6,1" HorizontalAlignment="Left" Margin="0,3,0,0">
-                            <TextBlock x:Name="BrandVersionText" Text="v1.0.9" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
+                            <TextBlock x:Name="BrandVersionText" Text="v1.0.10" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                     <Button x:Name="MinimizeButton" Style="{StaticResource CaptionButton}" Click="Minimize_Click" ToolTip="最小化" AutomationProperties.Name="最小化">
-                        <TextBlock Text="&#xE921;" FontFamily="Segoe Fluent Icons" FontSize="10"/>
+                        <TextBlock Text="&#xE921;" FontFamily="{StaticResource SymbolFont}" FontSize="10"/>
                     </Button>
                     <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButton}" Click="Maximize_Click" ToolTip="最大化" AutomationProperties.Name="最大化">
-                        <TextBlock x:Name="MaximizeGlyphText" Text="&#xE922;" FontFamily="Segoe Fluent Icons" FontSize="10"/>
+                        <TextBlock x:Name="MaximizeGlyphText" Text="&#xE922;" FontFamily="{StaticResource SymbolFont}" FontSize="10"/>
                     </Button>
                     <Button x:Name="CloseButton" Style="{StaticResource CaptionButton}" Click="CloseWindow_Click" ToolTip="关闭" AutomationProperties.Name="关闭">
-                        <TextBlock Text="&#xE8BB;" FontFamily="Segoe Fluent Icons" FontSize="10"/>
+                        <TextBlock Text="&#xE8BB;" FontFamily="{StaticResource SymbolFont}" FontSize="10"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -104,10 +104,10 @@
                     <Button x:Name="ErrorOpenBbsmcButton" Content="打开 BBSMC 验证" Style="{StaticResource SecondaryButton}" MinHeight="30" Padding="10,4" Margin="0,0,6,0" Visibility="Collapsed" Click="ErrorOpenBbsmc_Click" AutomationProperties.Name="打开BBSMC验证"/>
                     <Button x:Name="ErrorChooseLocalButton" Content="选择本地整合包" Style="{StaticResource SecondaryButton}" MinHeight="30" Padding="10,4" Margin="0,0,6,0" Visibility="Collapsed" Click="ErrorChooseLocal_Click" AutomationProperties.Name="选择本地整合包"/>
                     <Button Style="{StaticResource CaptionButton}" Width="30" Height="26" Click="CloseErrorBanner_Click" ToolTip="关闭错误提示" AutomationProperties.Name="关闭错误提示">
-                        <TextBlock Text="&#xE711;" FontFamily="Segoe Fluent Icons" FontSize="10"/>
+                        <TextBlock Text="&#xE711;" FontFamily="{StaticResource SymbolFont}" FontSize="10"/>
                     </Button>
                 </StackPanel>
-                <TextBlock Text="&#xE7BA;" FontFamily="Segoe Fluent Icons" FontSize="15" Foreground="White" VerticalAlignment="Top" Margin="0,4,10,0"/>
+                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource SymbolFont}" FontSize="15" Foreground="White" VerticalAlignment="Top" Margin="0,4,10,0"/>
                 <TextBlock x:Name="ErrorBannerText" Foreground="White" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
@@ -499,7 +499,7 @@
                                             <StackPanel>
                                                 <DockPanel Margin="0,0,0,15">
                                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="16"
+                                                        <TextBlock Text="&#xE73E;" FontFamily="{StaticResource SymbolFont}" FontSize="16"
                                                                    Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" Margin="0,0,6,0"
                                                                    Visibility="{Binding IsAllSuccess, Converter={StaticResource BoolToVisibility}}"/>
                                                         <TextBlock Text="{Binding OverallStatus}" Foreground="{StaticResource BlueBrush}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,14,0"/>
@@ -517,7 +517,7 @@
                                                                 <StackPanel>
                                                                     <DockPanel Margin="0,0,0,9">
                                                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-                                                                            <TextBlock Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="14"
+                                                                            <TextBlock Text="&#xE73E;" FontFamily="{StaticResource SymbolFont}" FontSize="14"
                                                                                        Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" Margin="0,0,6,0"
                                                                                        Visibility="{Binding IsSuccess, Converter={StaticResource BoolToVisibility}}"/>
                                                                             <TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -546,7 +546,7 @@
                         </ScrollViewer>
                         <StackPanel x:Name="TasksEmptyState" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Border Width="58" Height="58" CornerRadius="29" Background="{StaticResource SoftBlueBrush}">
-                                <TextBlock Text="&#xE896;" FontFamily="Segoe Fluent Icons" FontSize="24" Foreground="{StaticResource BlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#xE896;" FontFamily="{StaticResource SymbolFont}" FontSize="24" Foreground="{StaticResource BlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="还没有下载任务" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,16,0,7"/>
                             <TextBlock Text="从游戏下载或整合包页面发起真实安装。" Style="{StaticResource MutedText}" HorizontalAlignment="Center"/>
@@ -756,7 +756,7 @@
 
             <Border x:Name="StatusBorder" Grid.Row="3" Background="#F2F2F2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                 <DockPanel Margin="16,0">
-                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.0.9 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.0.10 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                     <TextBlock x:Name="LauncherTargetStateText" DockPanel.Dock="Right" Text="正在扫描启动器…" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" MaxWidth="400" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="16,0,0,0"/>
                     <TextBlock x:Name="StatusText" Text="正在准备界面…" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </DockPanel>
