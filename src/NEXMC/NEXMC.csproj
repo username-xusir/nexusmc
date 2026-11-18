@@ -7,7 +7,7 @@
     <AssemblyName>NEXMC</AssemblyName>
     <RootNamespace>NEXMC</RootNamespace>
     <ApplicationIcon>../../assets/nexmc.ico</ApplicationIcon>
-    <Version>1.0.10</Version>
+    <Version>1.0.11</Version>
     <Product>NEXMC</Product>
     <Description>NEXMC (nexusmc) Minecraft and modpack downloader</Description>
     <Copyright>NEXMC contributors; contains PCL download components, see NOTICE</Copyright>
@@ -21,7 +21,10 @@
     <Resource Include="../../assets/badge.png" Link="assets/badge.png" />
     <Resource Include="../../assets/badge-light.png" Link="assets/badge-light.png" />
     <Resource Include="../../assets/badge-white.png" Link="assets/badge-white.png" />
+    <Resource Include="../../assets/logo-n-black.png" Link="assets/logo-n-black.png" />
+    <Resource Include="../../assets/logo-n-white.png" Link="assets/logo-n-white.png" />
     <Resource Include="../../assets/hall/*.png" Link="assets/hall/%(Filename)%(Extension)" />
+    <Resource Include="../../assets/updates/*.png" Link="assets/updates/%(Filename)%(Extension)" />
     <Resource Include="../../assets/nexmc.ico" Link="assets/nexmc.ico" />
   </ItemGroup>
   <ItemGroup>

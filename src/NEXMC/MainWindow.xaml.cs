@@ -18,6 +18,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 {
     private readonly INexmcService _service;
     private readonly JsonSettingsService _settingsService = new();
+    private readonly UpdateService _updateService = new();
     private readonly ObservableCollection<MinecraftVersion> _minecraftVersions = new();
     private readonly ObservableCollection<LoaderSelection> _loaderSelections = new();
     private readonly ObservableCollection<ModpackProject> _modpackProjects = new();
@@ -53,6 +54,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     private bool _gameInstallBusy;
     private bool _modpackInstallBusy;
     private int _activeInstalls;
+    private bool _updateCheckBusy;
     private bool _launcherPrompted;
     private bool _isClosing;
     private string? _localModpackPath;
@@ -113,6 +115,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         await RefreshLaunchersAsync();
         if (_launcherChoices.Count == 0) PromptAddLauncherIfNeeded();
+        // 更新检查和版本列表互不依赖；先启动检查，避免版本源很慢时更新弹窗迟迟不出现。
+        _ = CheckForUpdatesAsync(false);
         await RefreshVersionsAsync();
     }
 
@@ -1941,6 +1945,48 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         var window = new HallOfFameWindow { Owner = this };
         window.ShowDialog();
+    }
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) =>
+        await CheckForUpdatesAsync(true);
+
+    private async Task CheckForUpdatesAsync(bool manual)
+    {
+        if (_updateCheckBusy || _isClosing) return;
+        _updateCheckBusy = true;
+        if (CheckUpdatesButton is not null) CheckUpdatesButton.IsEnabled = false;
+        if (manual && UpdateStateText is not null) UpdateStateText.Text = "正在检查 GitHub 最新 Release…";
+
+        try
+        {
+            var result = await _updateService.CheckAsync(UpdateService.GetCurrentVersion(), _closingCancellation.Token);
+            if (UpdateStateText is not null) UpdateStateText.Text = result.Message;
+
+            if (result.HasUpdate && result.Update is not null)
+            {
+                var window = new UpdateWindow(result.Update) { Owner = this };
+                window.ShowDialog();
+            }
+            else if (manual)
+            {
+                ShowStatus(result.Message, result.IsError);
+            }
+        }
+        catch (OperationCanceledException) when (_isClosing)
+        {
+            // 关闭主窗口时取消检查。
+        }
+        catch (Exception exception)
+        {
+            var message = "检查更新失败：" + exception.GetBaseException().Message;
+            if (UpdateStateText is not null) UpdateStateText.Text = message;
+            if (manual) ShowError("检查更新", exception);
+        }
+        finally
+        {
+            _updateCheckBusy = false;
+            if (CheckUpdatesButton is not null) CheckUpdatesButton.IsEnabled = true;
+        }
     }
 
     private async void SaveSettings_Click(object sender, RoutedEventArgs e)
