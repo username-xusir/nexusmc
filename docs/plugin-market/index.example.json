@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-13T12:00:00Z",
+  "plugins": [
+    {
+      "id": "nexmc.example.quick-launch",
+      "name": "快速启动",
+      "summary": "在 NEXMC 顶部增加一键启动当前实例的按钮。",
+      "icon": "icons/quick-launch.png",
+      "author": {
+        "name": "username-xusir",
+        "github": "username-xusir"
+      },
+      "license": "MIT",
+      "apiVersion": 1,
+      "latest": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "publishedAt": "2026-11-13T12:00:00Z",
+          "download": "https://github.com/username-xusir/nexusmc-market/releases/download/quick-launch-v1.0.0/quick-launch.nexplugin",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "size": 24576,
+          "minHost": "1.0.10",
+          "maxHost": null,
+          "permissions": [
+            "instance.read",
+            "process.start"
+          ],
+          "dependencies": []
+        }
+      ]
+    }
+  ]
+}

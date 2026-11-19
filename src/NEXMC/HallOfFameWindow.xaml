@@ -4,7 +4,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="名人堂 · NEXMC"
-        Width="820" Height="600"
+        Width="900" Height="720"
         ResizeMode="NoResize"
         WindowBackdropType="Mica"
         ExtendsContentIntoTitleBar="True"
@@ -34,27 +34,10 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="26,22,26,10">
                 <TextBlock Text="感谢让 NEXMC 成为可能的人" FontSize="24" FontWeight="SemiBold"/>
-                <TextBlock Text="没有 PCL2 的下载内核、开发者的实现和测试人员的反复验证，就没有这个软件。" Style="{StaticResource MutedText}" Margin="0,7,0,22" TextWrapping="Wrap"/>
+                <TextBlock Text="没有 PCL2 的下载内核、云析的网盘解析参考、开发者的实现和测试人员的反复验证，就没有这个软件。" Style="{StaticResource MutedText}" Margin="0,7,0,22" TextWrapping="Wrap"/>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="18" Margin="0,0,8,0">
-                        <StackPanel HorizontalAlignment="Center">
-                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
-                                <Image Source="pack://application:,,,/assets/hall/huogoooo.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            </Border>
-                            <TextBlock Text="huogoooo" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
-                            <TextBlock Text="nexus 内测人员" Style="{StaticResource MutedText}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                            <TextBlock Text="感谢反复测试" Style="{StaticResource MutedText}" FontSize="11" HorizontalAlignment="Center" Margin="0,12,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Grid.Column="1" Style="{StaticResource Card}" Padding="18" Margin="8,0" Cursor="Hand"
+                <UniformGrid Columns="2" Margin="0,0,0,6">
+                    <Border Style="{StaticResource Card}" Padding="18" Margin="0,0,7,7" Cursor="Hand"
                             Tag="https://afdian.com/a/LTCat" MouseLeftButtonUp="Card_Click" ToolTip="打开爱发电：龙腾猫跃">
                         <StackPanel HorizontalAlignment="Center">
                             <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
@@ -66,7 +49,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Column="2" Style="{StaticResource Card}" Padding="18" Margin="8,0,0,0" Cursor="Hand"
+                    <Border Style="{StaticResource Card}" Padding="18" Margin="7,0,0,7" Cursor="Hand"
                             Tag="https://github.com/username-xusir" MouseLeftButtonUp="Card_Click" ToolTip="打开 GitHub：username-xusir">
                         <StackPanel HorizontalAlignment="Center">
                             <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
@@ -77,7 +60,30 @@
                             <TextBlock Text="GitHub ↗" Foreground="{StaticResource BlueBrush}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
                         </StackPanel>
                     </Border>
-                </Grid>
+
+                    <Border Style="{StaticResource Card}" Padding="18" Margin="0,7,7,0" Cursor="Hand"
+                            Tag="https://github.com/tidain" MouseLeftButtonUp="Card_Click" ToolTip="打开 GitHub：tidain">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
+                                <Image Source="pack://application:,,,/assets/hall/tidain.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+                            <TextBlock Text="tidain" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                            <TextBlock Text="云析 YunX-Desktop 作者，网盘分享解析思路参考" Style="{StaticResource MutedText}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Text="GitHub ↗" Foreground="{StaticResource BlueBrush}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Padding="18" Margin="7,7,0,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
+                                <Image Source="pack://application:,,,/assets/hall/huogoooo.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+                            <TextBlock Text="huogoooo" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                            <TextBlock Text="nexus 内测人员" Style="{StaticResource MutedText}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Text="感谢反复测试" Style="{StaticResource MutedText}" FontSize="11" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
 
                 <TextBlock Text="点击头像卡片会使用默认浏览器打开对应主页；huogoooo 暂未提供公开主页。" Style="{StaticResource MutedText}" FontSize="11" Margin="0,18,0,0" TextWrapping="Wrap"/>
             </StackPanel>

@@ -1,4 +1,4 @@
-NEXMC / nexusmc 1.0.11
+NEXMC / nexusmc 1.1.0
 =====================
 
 NEXMC 是第三方基于 PCL 下载组件独立进行二次创作的产物，不是 PCL 官方版本，也不由 PCL、HMCL、BBSMC、Modrinth 或 CurseForge 官方背书。
@@ -21,6 +21,8 @@ Credits / 鸣谢
   https://afdian.com/a/LTCat
 - username-xusir — NEXMC 开发者
   https://github.com/username-xusir
+- tidain — 云析 YunX-Desktop 作者，网盘分享解析思路参考
+  https://github.com/tidain
 - huogoooo — NEXMC 内测人员
 
 PCL source / 固定版本
@@ -42,3 +44,14 @@ Minecraft 及相关素材的权利归 Mojang / Microsoft 及其权利人。
 NEXMC 不包含游戏账号、破解或付费内容。
 NEXMC 不使用 PCL/HMCL 的名称、图标或应用素材作为自身品牌。
 BBSMC 仅作为公开在线来源接入，不代表与 BBSMC 存在隶属或背书关系。
+
+Netdisk resolver / 网盘解析来源说明
+-----------------------------------
+
+NEXMC 的网盘链接识别、夸克 / UC 分享直链解析和登录 Cookie 读取是独立的 C# 实现，
+没有复制 YunX-Desktop 的源代码、图标、名称或其他素材，也不打包 YunX-Desktop 本体。
+接口行为和错误码处理参考了 YunX-Desktop（AGPL-3.0）的公开使用结果与公开抓包：
+https://github.com/tidain/YunX-Desktop
+
+NEXMC 不绕过网盘登录、人机验证或访问限制；需要登录时会打开应用内登录窗口，
+由用户本人完成登录。

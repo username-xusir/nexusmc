@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/username-xusir/nexusmc-market/main/schema/plugin.schema.json",
+  "title": "NEXMC .nexplugin manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "name", "version", "apiVersion", "entry", "minHost", "permissions", "license"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:\\.[a-z0-9-]+)+$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+    "apiVersion": { "type": "integer", "minimum": 1 },
+    "entry": { "type": "string", "pattern": "^[A-Za-z0-9._/-]+\\.dll$" },
+    "minHost": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "maxHost": { "type": ["string", "null"], "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "enum": ["instance.read", "instance.write", "network", "filesystem.read", "filesystem.write", "process.start", "ui.command"]
+      },
+      "uniqueItems": true
+    },
+    "license": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "icon": { "type": "string", "pattern": "^[A-Za-z0-9._-]+\\.(png|jpg|jpeg|webp)$" },
+    "description": { "type": "string", "maxLength": 500 }
+  }
+}

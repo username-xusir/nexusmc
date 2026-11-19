@@ -36,7 +36,7 @@
             <TextBlock Text="给这次下载的整合包起一个名字" FontSize="19" FontWeight="SemiBold"/>
             <TextBlock Text="这个名字会出现在 PCL/HMCL 的版本列表里，也会作为 versions 目录名。" Style="{StaticResource MutedText}" Margin="0,7,0,18"/>
             <TextBlock Text="实例名称" Style="{StaticResource FieldLabel}"/>
-            <TextBox x:Name="NameTextBox" MaxLength="120" TextChanged="NameTextBox_TextChanged" ToolTip="不能包含路径字符，不能使用 Windows 保留名"/>
+            <TextBox x:Name="NameTextBox" AutomationProperties.AutomationId="ModpackNameTextBox" MaxLength="120" TextChanged="NameTextBox_TextChanged" ToolTip="不能包含路径字符，不能使用 Windows 保留名"/>
             <TextBlock x:Name="ValidationText" Style="{StaticResource MutedText}" Margin="0,7,0,0" TextWrapping="Wrap"/>
         </StackPanel>
 
@@ -44,7 +44,7 @@
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="取消" Width="88" Style="{StaticResource GhostButton}" Click="Cancel_Click" Margin="0,0,9,0"/>
-                    <Button Content="下载并安装" Width="126" Style="{StaticResource PrimaryButton}" Click="Confirm_Click"/>
+                    <Button Content="下载并安装" AutomationProperties.AutomationId="ModpackNameConfirmButton" Width="126" Style="{StaticResource PrimaryButton}" Click="Confirm_Click"/>
                 </StackPanel>
                 <TextBlock Text="下载前会再校验一次名称。" Style="{StaticResource MutedText}" VerticalAlignment="Center"/>
             </DockPanel>

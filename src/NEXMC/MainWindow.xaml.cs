@@ -19,6 +19,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     private readonly INexmcService _service;
     private readonly JsonSettingsService _settingsService = new();
     private readonly UpdateService _updateService = new();
+    private readonly NetdiskResolver _netdiskResolver = new();
+    private readonly NetdiskCookieStore _netdiskCookieStore = new();
     private readonly ObservableCollection<MinecraftVersion> _minecraftVersions = new();
     private readonly ObservableCollection<LoaderSelection> _loaderSelections = new();
     private readonly ObservableCollection<ModpackProject> _modpackProjects = new();
@@ -95,6 +97,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
 
         LoadSettingsIntoControls();
+        UpdateNetdiskAccountUi();
         UpdateTaskEmptyState();
         UpdateInstallInputHints();
         UpdateGameInstallState();
@@ -1477,14 +1480,23 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
-        ModpackSelectionSummaryText.Text = ModpackVersionsList.SelectedItem is ModpackVersion version
-            ? $"已选：{project.Name} · {version.Display}" +
-              (version.IsDirectDownload
-                  ? (IsDownloadOnlyMode ? "（直链，可下载到本地）" : "（直链，可下载安装）")
-                  : version.HasExternalUrl
-                      ? "（仅网盘，点击右侧按钮打开网盘）"
-                      : "（仅网盘且无链接，将打开项目介绍页）")
-            : $"已选项目：{project.Name}；请选择一个版本。";
+        if (ModpackVersionsList.SelectedItem is ModpackVersion version)
+        {
+            var link = NetdiskLinkParser.Parse(version.ExternalUrl);
+            ModpackSelectionSummaryText.Text = $"已选：{project.Name} · {version.Display}" +
+                (version.IsDirectDownload
+                    ? (IsDownloadOnlyMode ? "（直链，可下载到本地）" : "（直链，可下载安装）")
+                    : NetdiskLinkParser.IsSupported(link)
+                        ? $"（{link!.DisplayName}，可自动解析）"
+                        : link is not null
+                            ? $"（{link.DisplayName}，需在浏览器打开）"
+                            : version.HasExternalUrl
+                                ? "（仅网盘，点击右侧按钮打开网盘）"
+                                : "（仅网盘且无链接，将打开项目介绍页）");
+            return;
+        }
+
+        ModpackSelectionSummaryText.Text = $"已选项目：{project.Name}；请选择一个版本。";
     }
 
     private static string SuggestInstanceName(string raw)
@@ -1509,7 +1521,12 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         var project = ModpackProjectsList.SelectedItem as ModpackProject;
         var selectedVersion = ModpackVersionsList.SelectedItem as ModpackVersion;
-        var canInstall = _localModpackPath is not null || selectedVersion?.IsDirectDownload == true;
+        var netdiskLink = selectedVersion is null ? null : NetdiskLinkParser.Parse(selectedVersion.ExternalUrl);
+        var canResolveNetdisk = _localModpackPath is null &&
+            NetdiskLinkParser.IsSupported(netdiskLink);
+        var canInstall = _localModpackPath is not null ||
+            selectedVersion?.IsDirectDownload == true ||
+            canResolveNetdisk;
         var canOpenExternal = _localModpackPath is null && selectedVersion is not null &&
             (selectedVersion.HasExternalUrl || !string.IsNullOrWhiteSpace(project?.ProjectUrl));
         var downloadOnly = IsDownloadOnlyMode;
@@ -1523,18 +1540,28 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ModpackInstallButton.IsEnabled = !_modpackVersionsBusy &&
             actionEnabled && !_isClosing;
         ModpackInstallButton.Content = canInstall
-            ? (downloadOnly ? "仅下载到本地" : "下载并安装")
+            ? canResolveNetdisk
+                ? (downloadOnly ? "解析网盘并下载" : "解析网盘并安装")
+                : (downloadOnly ? "仅下载到本地" : "下载并安装")
             : selectedVersion is null
                 ? "下载并安装"
                 : selectedVersion.HasExternalUrl ? "打开网盘下载" : "打开项目下载页";
-        ModpackInstallButton.ToolTip = canInstall
-            ? (downloadOnly
-                ? "只把整合包文件保存到设置里的本地文件夹，不写入启动器。"
-                : "选择启动器后下载并安装，安装前会让你命名实例。")
-            : "该版本仅提供网盘；点击后由系统浏览器打开网盘或项目介绍页。";
+        ModpackInstallButton.ToolTip = canResolveNetdisk
+            ? $"检测到{netdiskLink!.DisplayName}。NEXMC 会尝试直接解析并下载；需要登录时会在此处弹出登录窗口。"
+            : canInstall
+                ? (downloadOnly
+                    ? "只把整合包文件保存到设置里的本地文件夹，不写入启动器。"
+                    : "选择启动器后下载并安装，安装前会让你命名实例。")
+                : netdiskLink is not null
+                    ? $"检测到{netdiskLink.DisplayName}。当前只自动处理夸克 / UC，其他网盘会打开浏览器。"
+                    : "该版本仅提供网盘；点击后由系统浏览器打开网盘或项目介绍页。";
         if (ModpackInstallHintText is not null)
         {
-            ModpackInstallHintText.Text = downloadOnly ? "仅下载到本地文件夹" : "安装到所选启动器";
+            ModpackInstallHintText.Text = canResolveNetdisk
+                ? $"已识别{netdiskLink!.DisplayName} · 自动解析直链"
+                : netdiskLink is not null
+                    ? $"已识别{netdiskLink.DisplayName} · 暂需浏览器打开"
+                    : downloadOnly ? "仅下载到本地文件夹" : "安装到所选启动器";
         }
         if (SelectModpackVersionsButton is not null)
         {
@@ -1552,19 +1579,25 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         var project = ModpackProjectsList.SelectedItem as ModpackProject;
         var selectedVersion = ModpackVersionsList.SelectedItem as ModpackVersion;
-        if (_localModpackPath is null && selectedVersion is not null && !selectedVersion.IsDirectDownload)
+        var netdiskLink = selectedVersion is null ? null : NetdiskLinkParser.Parse(selectedVersion.ExternalUrl);
+        var canResolveNetdisk = _localModpackPath is null &&
+            selectedVersion?.IsDirectDownload == false &&
+            NetdiskLinkParser.IsSupported(netdiskLink);
+        if (_localModpackPath is null && selectedVersion is not null && !selectedVersion.IsDirectDownload &&
+            !canResolveNetdisk)
         {
             OpenModpackNetdisk(project, selectedVersion);
             return;
         }
 
-        var hasOnlineVersion = project is not null && selectedVersion?.IsDirectDownload == true;
+        var hasOnlineVersion = project is not null &&
+            (selectedVersion?.IsDirectDownload == true || canResolveNetdisk);
         if (_localModpackPath is null && !hasOnlineVersion)
         {
             ShowError("下载整合包", new InvalidOperationException(
                 project is null
-                    ? "请先在整合包列表中点开一个项目并选择直链可用版本，或从右上角导入本地包。"
-                    : "请选择一个直链可用的整合包版本；仅网盘版本会改为打开网盘下载。"));
+                    ? "请先在整合包列表中点开一个项目并选择可下载版本，或从右上角导入本地包。"
+                    : "请选择一个可下载的整合包版本；无法自动解析的网盘会改为打开浏览器。"));
             return;
         }
 
@@ -1601,6 +1634,12 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
+        if (canResolveNetdisk && project is not null && selectedVersion is not null && netdiskLink is not null)
+        {
+            await StartNetdiskModpackInstallAsync(project, selectedVersion, netdiskLink, nameDialog.InstanceName);
+            return;
+        }
+
         await StartModpackInstallAsync();
     }
 
@@ -1630,6 +1669,202 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         {
             _modpackInstallBusy = false;
             UpdateModpackInstallState();
+        }
+    }
+
+    private async Task StartNetdiskModpackInstallAsync(ModpackProject project, ModpackVersion version,
+        ParsedNetdiskLink link, string instanceName)
+    {
+        if (_modpackInstallBusy) return;
+        _modpackInstallBusy = true;
+        try
+        {
+            var targets = RequestTargets();
+            var request = new InstallRequest(instanceName, version.GameVersion, null, null, null, null,
+                null, targets, IsDownloadOnlyMode, IsDownloadOnlyMode ? DownloadOnlyDirectory : null);
+            var task = new InstallTaskItem(
+                $"{instanceName} · {project.Name} · {link.DisplayName}" +
+                (IsDownloadOnlyMode ? " · 仅下载" : ""), targets, IsDownloadOnlyMode);
+            AddTask(task);
+            TasksNav.IsChecked = true;
+            ShowTasksPage();
+            await RunNetdiskInstallAsync(task, request, project, version, link);
+        }
+        catch (Exception exception)
+        {
+            ShowError("网盘下载", exception);
+        }
+        finally
+        {
+            _modpackInstallBusy = false;
+            UpdateModpackInstallState();
+        }
+    }
+
+    private async Task RunNetdiskInstallAsync(InstallTaskItem task, InstallRequest baseRequest,
+        ModpackProject project, ModpackVersion version, ParsedNetdiskLink link)
+    {
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(
+            _closingCancellation.Token, task.Cancellation.Token);
+        var ct = cancellation.Token;
+        var targetId = task.Targets.FirstOrDefault()?.Option.Id ?? "netdisk";
+        ResolvedNetdiskFile? resolved = null;
+        try
+        {
+            ClearErrorBanner();
+            ShowStatus($"正在解析{link.DisplayName}：{project.Name}", false);
+            task.Report(new TargetProgress(targetId, 0, $"正在连接{link.DisplayName}…", null));
+
+            var cookie = _netdiskCookieStore.Load(link.Platform);
+            var loginAttempts = 0;
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+                try
+                {
+                    var status = new Progress<string>(message =>
+                        task.Report(new TargetProgress(targetId, 0.02, message, null)));
+                    resolved = await _netdiskResolver.ResolveAsync(link, cookie, status, ct, version.Display);
+                    break;
+                }
+                catch (NetdiskException exception) when (exception.RequiresLogin && loginAttempts < 2)
+                {
+                    loginAttempts++;
+                    task.Report(new TargetProgress(targetId, 0,
+                        $"{link.DisplayName}需要登录，正在打开登录窗口…", null));
+                    var loggedIn = ShowNetdiskLogin(link);
+                    ct.ThrowIfCancellationRequested();
+                    if (!loggedIn) throw new OperationCanceledException("用户取消网盘登录。");
+                    cookie = _netdiskCookieStore.Load(link.Platform);
+                    if (string.IsNullOrWhiteSpace(cookie))
+                        throw new NetdiskException("没有读取到网盘登录 Cookie，请重新登录。");
+                }
+            }
+
+            var cacheDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "NEXMC", "NetdiskCache", link.Platform.ToString().ToLowerInvariant());
+            Directory.CreateDirectory(cacheDirectory);
+            var fileName = SafeNetdiskFileName(resolved.FileName);
+            var destination = UniqueLocalPath(Path.Combine(cacheDirectory,
+                $"{DateTime.Now:yyyyMMdd-HHmmss}-{fileName}"));
+            var downloadProgress = new Progress<(double Progress, string Message)>(update =>
+            {
+                var overall = 0.06 + Math.Clamp(update.Progress, 0, 100) / 100.0 * 0.64;
+                task.Report(new TargetProgress(targetId, overall, update.Message, null));
+            });
+            await _netdiskResolver.DownloadAsync(resolved, destination, downloadProgress, ct);
+            ct.ThrowIfCancellationRequested();
+
+            var localRequest = baseRequest with
+            {
+                LocalModpackPath = destination,
+                MinecraftVersion = version.GameVersion
+            };
+            task.Report(new TargetProgress(targetId, 0.7, "网盘文件已下载，正在准备安装", null));
+            await RunInstallAsync(task, localRequest);
+        }
+        catch (OperationCanceledException)
+        {
+            task.CompleteCancellation();
+            ShowStatus($"已取消：{task.Title}", false);
+        }
+        catch (Exception exception)
+        {
+            task.Fail(exception);
+            ShowStatus($"网盘下载失败：{exception.GetBaseException().Message}", true);
+            ShowError("网盘下载失败", exception);
+        }
+        finally
+        {
+            if (resolved?.Cleanup is not null)
+            {
+                try { await resolved.Cleanup(CancellationToken.None); } catch { }
+            }
+        }
+    }
+
+    private bool ShowNetdiskLogin(ParsedNetdiskLink link)
+    {
+        var window = new NetdiskLoginWindow(link, _netdiskCookieStore, _netdiskResolver) { Owner = this };
+        return window.ShowDialog() == true;
+    }
+
+    private void UpdateNetdiskAccountUi()
+    {
+        if (QuarkAccountStateText is null || UcAccountStateText is null) return;
+        var quark = _netdiskCookieStore.Load(NetdiskPlatform.Quark);
+        var uc = _netdiskCookieStore.Load(NetdiskPlatform.Uc);
+        QuarkAccountStateText.Text = string.IsNullOrWhiteSpace(quark)
+            ? "未登录 · 大文件下载前会提示登录"
+            : "已保存登录 · Cookie 加密保存在本机";
+        UcAccountStateText.Text = string.IsNullOrWhiteSpace(uc)
+            ? "未登录 · 大文件下载前会提示登录"
+            : "已保存登录 · Cookie 加密保存在本机";
+        QuarkLoginButton.Content = string.IsNullOrWhiteSpace(quark) ? "登录" : "重新登录";
+        QuarkLogoutButton.Visibility = string.IsNullOrWhiteSpace(quark) ? Visibility.Collapsed : Visibility.Visible;
+        UcLoginButton.Content = string.IsNullOrWhiteSpace(uc) ? "登录" : "重新登录";
+        UcLogoutButton.Visibility = string.IsNullOrWhiteSpace(uc) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void NetdiskLogin_Click(object sender, RoutedEventArgs e)
+    {
+        var platform = string.Equals((sender as FrameworkElement)?.Tag?.ToString(), "uc",
+            StringComparison.OrdinalIgnoreCase) ? NetdiskPlatform.Uc : NetdiskPlatform.Quark;
+        if (ShowNetdiskLogin(BuildNetdiskLoginLink(platform)))
+        {
+            UpdateNetdiskAccountUi();
+            ShowStatus($"已登录{NetdiskPlatformDisplay(platform)}，之后下载大文件会直接使用这个登录状态。", false);
+        }
+    }
+
+    private void NetdiskLogout_Click(object sender, RoutedEventArgs e)
+    {
+        var platform = string.Equals((sender as FrameworkElement)?.Tag?.ToString(), "uc",
+            StringComparison.OrdinalIgnoreCase) ? NetdiskPlatform.Uc : NetdiskPlatform.Quark;
+        _netdiskCookieStore.Clear(platform);
+        UpdateNetdiskAccountUi();
+        ShowStatus($"已退出{NetdiskPlatformDisplay(platform)}登录。", false);
+    }
+
+    private static ParsedNetdiskLink BuildNetdiskLoginLink(NetdiskPlatform platform) =>
+        platform == NetdiskPlatform.Uc
+            ? new ParsedNetdiskLink(platform, string.Empty, null, string.Empty, "UC 网盘",
+                true, "https://drive.uc.cn/", "https://drive.uc.cn")
+            : new ParsedNetdiskLink(platform, string.Empty, null, string.Empty, "夸克网盘",
+                true, "https://pan.quark.cn/", "https://pan.quark.cn");
+
+    private static string NetdiskPlatformDisplay(NetdiskPlatform platform) =>
+        platform == NetdiskPlatform.Uc ? "UC 网盘" : "夸克网盘";
+
+    private static string SafeNetdiskFileName(string name)
+    {
+        var fileName = Path.GetFileName(string.IsNullOrWhiteSpace(name) ? "modpack.zip" : name);
+        foreach (var invalid in Path.GetInvalidFileNameChars())
+        {
+            fileName = fileName.Replace(invalid, '_');
+        }
+        fileName = fileName.Trim().TrimEnd(' ', '.');
+        if (string.IsNullOrWhiteSpace(fileName)) fileName = "modpack.zip";
+        var extension = Path.GetExtension(fileName);
+        if (!extension.Equals(".zip", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".mrpack", StringComparison.OrdinalIgnoreCase))
+        {
+            fileName += ".zip";
+        }
+        return fileName;
+    }
+
+    private static string UniqueLocalPath(string path)
+    {
+        if (!File.Exists(path) && !Directory.Exists(path)) return path;
+        var directory = Path.GetDirectoryName(path) ?? string.Empty;
+        var name = Path.GetFileNameWithoutExtension(path);
+        var extension = Path.GetExtension(path);
+        for (var index = 2; ; index++)
+        {
+            var candidate = Path.Combine(directory, $"{name}-{index}{extension}");
+            if (!File.Exists(candidate) && !Directory.Exists(candidate)) return candidate;
         }
     }
 
@@ -1895,6 +2130,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     private void OpenModpackNetdisk(ModpackProject? project, ModpackVersion version)
     {
         var hasCloudLink = version.HasExternalUrl;
+        var link = hasCloudLink ? NetdiskLinkParser.Parse(version.ExternalUrl) : null;
         var url = hasCloudLink ? version.ExternalUrl : project?.ProjectUrl;
         if (!TryOpenHttpUrl(url, hasCloudLink ? "打开网盘下载" : "打开项目下载页"))
         {
@@ -1902,7 +2138,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
 
         ShowStatus(hasCloudLink
-            ? $"该版本仅提供网盘，已在浏览器打开：{version.Display}"
+            ? $"该版本使用{link?.DisplayName ?? "网盘"}，已在浏览器打开：{version.Display}" +
+              (link is not null && !link.SupportsAutoResolve ? "；当前只自动处理夸克 / UC，其他网盘请在页面内下载。" : "")
             : $"该版本没有可用网盘链接，已打开项目介绍页：{project?.Name}", false);
     }
 

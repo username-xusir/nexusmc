@@ -110,7 +110,13 @@ public sealed record ModpackVersion(string Id, string Display, string GameVersio
 {
     public string ExternalUrl { get; init; } = string.Empty;
     public bool HasExternalUrl => !string.IsNullOrWhiteSpace(ExternalUrl);
-    public string InstallModeText => IsDirectDownload ? "直链可用" : HasExternalUrl ? "仅网盘 · 可打开网盘" : "仅网盘 · 无链接";
+    public string InstallModeText => IsDirectDownload
+        ? "直链可用"
+        : HasExternalUrl
+            ? (NetdiskLinkParser.IsSupported(NetdiskLinkParser.Parse(ExternalUrl))
+                ? "网盘 · 可自动解析"
+                : "仅网盘 · 可打开网盘")
+            : "仅网盘 · 无链接";
 }
 
 public sealed record InstallRequest(

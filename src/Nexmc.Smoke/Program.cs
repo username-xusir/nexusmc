@@ -29,6 +29,8 @@ internal static class Program
         bool retryFixture = args.Contains("--retry-fixture", StringComparer.OrdinalIgnoreCase);
         bool bbsmcFixture = args.Contains("--bbsmc-fixture", StringComparer.OrdinalIgnoreCase);
         bool netdiskFixture = args.Contains("--netdisk-fixture", StringComparer.OrdinalIgnoreCase);
+        bool netdiskResolve = args.Contains("--netdisk-resolve", StringComparer.OrdinalIgnoreCase);
+        bool netdiskCookieTest = args.Contains("--netdisk-cookie-test", StringComparer.OrdinalIgnoreCase);
         bool iconFixture = args.Contains("--icon-fixture", StringComparer.OrdinalIgnoreCase);
         bool assetSourcesFixture = args.Contains("--asset-sources", StringComparer.OrdinalIgnoreCase);
         bool dualFixture = args.Contains("--dual-fixture", StringComparer.OrdinalIgnoreCase);
@@ -44,7 +46,7 @@ internal static class Program
             {
                 try
                 {
-                    exitCode = await Task.Run(() => mirrorFixture ? InstallMirrorFixture(args) : concurrentMetadataFixture ? ConcurrentMetadataFixture() : downloadOnlyFixture ? InstallDownloadOnlyFixture() : dualFixture ? InstallDualFixture() : assetSourcesFixture ? ShowAssetSources() : iconFixture ? VerifyIconDecode() : netdiskFixture ? InspectModpackExternal() : fabricFixture ? InstallFabricFixture() : neoforgeFixture ? InstallNeoForgeFixture() : bbsmcFixture ? InstallBbsmcFixture() : retryFixture ? RunRetryFixture() : modrinthFixture ? InstallModrinthFixture() : allOfCreateFixture ? InstallAllOfCreateFixture() : vanillaFixture ? InstallVanillaFixture() : encodingFixture ? VerifyEncodingFixture() : forgeFixture ? InstallForgeFixture() : allSources ? SearchAllSources() : searchCategories ? SearchCategories() : listLaunchers ? ListLaunchers() : installFixture ? InstallFixture() : VerifySources());
+                    exitCode = await Task.Run(() => mirrorFixture ? InstallMirrorFixture(args) : concurrentMetadataFixture ? ConcurrentMetadataFixture() : downloadOnlyFixture ? InstallDownloadOnlyFixture() : dualFixture ? InstallDualFixture() : assetSourcesFixture ? ShowAssetSources() : iconFixture ? VerifyIconDecode() : netdiskCookieTest ? TestNetdiskCookieStore() : netdiskResolve ? ResolveNetdiskFixture(args) : netdiskFixture ? InspectModpackExternal() : fabricFixture ? InstallFabricFixture() : neoforgeFixture ? InstallNeoForgeFixture() : bbsmcFixture ? InstallBbsmcFixture() : retryFixture ? RunRetryFixture() : modrinthFixture ? InstallModrinthFixture() : allOfCreateFixture ? InstallAllOfCreateFixture() : vanillaFixture ? InstallVanillaFixture() : encodingFixture ? VerifyEncodingFixture() : forgeFixture ? InstallForgeFixture() : allSources ? SearchAllSources() : searchCategories ? SearchCategories() : listLaunchers ? ListLaunchers() : installFixture ? InstallFixture() : VerifySources());
                 }
                 catch (Exception exception)
                 {
@@ -591,6 +593,80 @@ internal static class Program
         if (versions.Count == 0) throw new InvalidOperationException("No versions returned.");
         if (external == 0) throw new InvalidOperationException("No external/cloud URL was preserved.");
         return 0;
+    }
+
+    private static int TestNetdiskCookieStore()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "NEXMC-netdisk-cookie-test-" + Guid.NewGuid().ToString("N"));
+        Environment.SetEnvironmentVariable("NEXMC_NETDISK_AUTH_DIR", root);
+        try
+        {
+            var store = new NetdiskCookieStore();
+            store.Save(NetdiskPlatform.Quark, "__pus=smoke; __puus=smoke");
+            var loaded = store.Load(NetdiskPlatform.Quark);
+            Console.WriteLine($"LOADED={loaded}");
+            if (loaded != "__pus=smoke; __puus=smoke") return 1;
+            store.Clear(NetdiskPlatform.Quark);
+            if (store.Load(NetdiskPlatform.Quark) is not null) return 1;
+            Console.WriteLine("COOKIE_STORE_OK");
+            return 0;
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("NEXMC_NETDISK_AUTH_DIR", null);
+            try { if (Directory.Exists(root)) Directory.Delete(root, true); } catch { }
+        }
+    }
+
+    private static int ResolveNetdiskFixture(string[] args)
+    {
+        var index = Array.FindIndex(args, item =>
+            item.Equals("--netdisk-resolve", StringComparison.OrdinalIgnoreCase));
+        var url = index >= 0 && index + 1 < args.Length ? args[index + 1] : string.Empty;
+        if (string.IsNullOrWhiteSpace(url))
+            throw new ArgumentException("用法：--netdisk-resolve <分享链接> [版本名] [--download]");
+        var preferred = index + 2 < args.Length && !args[index + 2].StartsWith("--", StringComparison.Ordinal)
+            ? args[index + 2]
+            : null;
+        var link = NetdiskLinkParser.Parse(url)
+            ?? throw new InvalidOperationException("无法识别链接。");
+        Console.WriteLine($"PLATFORM={link.Platform} SHARE={link.ShareId} PWD={link.PasswordHint} " +
+            $"AUTO={link.SupportsAutoResolve} LOGIN={link.LoginUrl}");
+        if (!link.SupportsAutoResolve)
+        {
+            Console.WriteLine("AUTO_RESOLVE=UNSUPPORTED");
+            return 2;
+        }
+
+        var resolver = new NetdiskResolver();
+        try
+        {
+            var resolved = resolver.ResolveAsync(link, null,
+                new Progress<string>(Console.WriteLine), CancellationToken.None, preferred)
+                .GetAwaiter().GetResult();
+            Console.WriteLine($"RESOLVED name={resolved.FileName} size={resolved.Size} " +
+                $"urlHost={new Uri(resolved.DownloadUrl).Host}");
+            if (args.Contains("--download", StringComparer.OrdinalIgnoreCase))
+            {
+                var destination = Path.Combine(Path.GetTempPath(), "NEXMC-netdisk-smoke",
+                    resolved.FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                resolver.DownloadAsync(resolved, destination,
+                    new Progress<(double Progress, string Message)>(value =>
+                        Console.WriteLine($"{value.Progress:F1}% {value.Message}")),
+                    CancellationToken.None).GetAwaiter().GetResult();
+                var length = new FileInfo(destination).Length;
+                Console.WriteLine($"DOWNLOAD_OK {destination} {length}");
+                if (length <= 0) return 1;
+            }
+            return 0;
+        }
+        catch (NetdiskException exception)
+        {
+            Console.WriteLine($"NETDISK_ERROR code={exception.Code} requiresLogin={exception.RequiresLogin} " +
+                $"message={exception.Message}");
+            return exception.RequiresLogin ? 3 : 1;
+        }
     }
 
     private static int ListLaunchers()

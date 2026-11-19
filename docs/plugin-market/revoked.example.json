@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-13T12:00:00Z",
+  "entries": [
+    {
+      "id": "nexmc.example.bad-plugin",
+      "version": "1.0.0",
+      "sha256": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "severity": "block",
+      "reason": "示例：插件包含未授权的文件删除行为。"
+    }
+  ]
+}

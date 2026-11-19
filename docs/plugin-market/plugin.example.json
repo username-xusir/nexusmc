@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "nexmc.example.quick-launch",
+  "name": "快速启动",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "entry": "QuickLaunch.dll",
+  "minHost": "1.0.10",
+  "maxHost": null,
+  "permissions": [
+    "instance.read",
+    "process.start"
+  ],
+  "license": "MIT",
+  "icon": "icon.png",
+  "description": "在 NEXMC 顶部增加一键启动当前实例的按钮。"
+}

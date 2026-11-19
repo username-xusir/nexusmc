@@ -22,6 +22,7 @@
     <Compile Include="../../src/NEXMC/Services/InstallRetryPolicy.cs" Link="InstallRetryPolicy.cs" />
     <Compile Include="../../src/NEXMC/Services/InstallRetryRequestFactory.cs" Link="InstallRetryRequestFactory.cs" />
     <Compile Include="../../src/NEXMC/Services/UpdateService.cs" Link="UpdateService.cs" />
+    <Compile Include="../../src/NEXMC/Services/NetdiskLinkParser.cs" Link="NetdiskLinkParser.cs" />
     <Compile Include="../../src/NEXMC/Models/InstallTaskItem.cs" Link="InstallTaskItem.cs" />
   </ItemGroup>
 </Project>

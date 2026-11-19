@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/username-xusir/nexusmc-market/main/schema/revoked.schema.json",
+  "title": "NEXMC plugin revocation list",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "updatedAt", "entries"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "entries": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "version", "sha256", "severity", "reason"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:\\.[a-z0-9-]+)+$" },
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "severity": { "enum": ["warn", "block"] },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 300 }
+        }
+      }
+    }
+  }
+}
