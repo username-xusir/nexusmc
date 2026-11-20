@@ -18,10 +18,12 @@ public sealed class UiSettings
     public string Pcl2Exe { get; set; } = string.Empty;
     public string HmclExe { get; set; } = string.Empty;
     public List<CustomLauncherSetting> CustomLaunchers { get; set; } = new();
+    public List<string> DisabledLaunchers { get; set; } = new();
     public string GameDownloadSource { get; set; } = "auto";
     public string DefaultModpackSource { get; set; } = "全部来源";
     public bool FallbackModpackSources { get; set; } = true;
     public int DownloadThreads { get; set; } = 16;
+    public bool DownloadThreadsAuto { get; set; } = false;
     public int DownloadSpeedLimitMb { get; set; } = 0;
     public int RetryAttempts { get; set; } = 3;
     public int RetryDelaySeconds { get; set; } = 10;
@@ -49,6 +51,8 @@ public sealed class JsonSettingsService
         var settings = JsonSerializer.Deserialize<UiSettings>(json) ?? new UiSettings();
         settings.CustomLaunchers ??= new List<CustomLauncherSetting>();
         settings.CustomLaunchers.RemoveAll(item => item is null);
+        settings.DisabledLaunchers ??= new List<string>();
+        settings.DisabledLaunchers.RemoveAll(string.IsNullOrWhiteSpace);
         foreach (var custom in settings.CustomLaunchers)
         {
             custom.Name ??= string.Empty;

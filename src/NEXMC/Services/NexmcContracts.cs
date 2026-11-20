@@ -143,5 +143,7 @@ public interface INexmcService
     IAsyncEnumerable<ModpackSourceChunk> SearchAllModpacksIncrementalAsync(string query, string? gameVersion, string? category, int offset, int limit, CancellationToken ct = default);
     IAsyncEnumerable<ModpackSourceChunk> SearchAllModpacksIncrementalAsync(string query, IReadOnlyList<string> sources, string? gameVersion, string? category, int offset, int limit, CancellationToken ct = default);
     Task<IReadOnlyList<ModpackVersion>> GetModpackVersionsAsync(string projectId, string source, CancellationToken ct = default);
+    Task DownloadNetdiskFileAsync(string url, string localPath, IReadOnlyDictionary<string, string> headers,
+        IProgress<(double Progress, string Message)> progress, CancellationToken ct = default);
     Task InstallAsync(InstallRequest request, IProgress<TargetProgress> progress, CancellationToken ct = default);
 }

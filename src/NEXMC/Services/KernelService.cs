@@ -24,6 +24,7 @@ public sealed class KernelService : INexmcService
     private bool _fallbackModpackSources = true;
     private string _gameDownloadSource = "auto";
     private int _downloadThreads = 16;
+    private bool _autoThreads;
     private int _speedSetting = 42;
     private int _settingsRevision;
 
@@ -46,7 +47,8 @@ public sealed class KernelService : INexmcService
         _retryDelay = TimeSpan.FromSeconds(Math.Clamp(settings.RetryDelaySeconds, 1, 120));
         _fallbackModpackSources = settings.FallbackModpackSources;
 
-        _downloadThreads = Math.Clamp(settings.DownloadThreads, 1, 64);
+        _autoThreads = settings.DownloadThreadsAuto;
+        _downloadThreads = _autoThreads ? 256 : Math.Clamp(settings.DownloadThreads, 1, 256);
         _speedSetting = settings.DownloadSpeedLimitMb switch
         {
             <= 0 => 42,
@@ -246,6 +248,31 @@ public sealed class KernelService : INexmcService
             {
                 ExternalUrl = v.ExternalUrl ?? string.Empty
             }).ToList(), ct);
+    }
+
+    public Task DownloadNetdiskFileAsync(string url, string localPath,
+        IReadOnlyDictionary<string, string> headers,
+        IProgress<(double Progress, string Message)> progress, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(url);
+        ArgumentException.ThrowIfNullOrWhiteSpace(localPath);
+        headers ??= new Dictionary<string, string>();
+        return Task.Run(() =>
+        {
+            var customHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var pair in headers)
+            {
+                if (!string.IsNullOrWhiteSpace(pair.Key) && pair.Value is not null)
+                    customHeaders[pair.Key] = pair.Value;
+            }
+            // 自动模式：让 PCL 内核持续补连接，直到接近 32 MB/s 或达到 256 线程上限。
+            // 固定线程数：目标速度按线程数换算，最高 64 MB/s，避免无上限地开连接。
+            var parallelTarget = _autoThreads
+                ? 32L * 1024 * 1024
+                : Math.Min(64, _downloadThreads) * 1024L * 1024L;
+            KernelFacade.DownloadDirectUrl(url, localPath, customHeaders,
+                (value, message) => progress?.Report((value, message)), ct, parallelTarget);
+        }, ct);
     }
 
     public async Task InstallAsync(InstallRequest request, IProgress<TargetProgress> progress, CancellationToken ct = default)
@@ -559,7 +586,7 @@ public sealed class KernelService : INexmcService
         {
             using var request = new HttpRequestMessage(HttpMethod.Get,
                 "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
-            request.Headers.UserAgent.ParseAdd("NEXMC/1.1.0");
+            request.Headers.UserAgent.ParseAdd("NEXMC/1.1.1");
             using var response = await MirrorProbeClient.SendAsync(request,
                 HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
             ok = response.IsSuccessStatusCode;

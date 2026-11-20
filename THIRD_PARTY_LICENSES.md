@@ -16,7 +16,8 @@
 | System.Drawing.Common / Management / Runtime.Caching / ServiceModel.Primitives | NuGet 锁定版本 | MIT | `licenses/Dotnet-Foundation-MIT.txt` |
 | Microsoft.Extensions.ObjectPool | 8.0.10 | MIT | `licenses/Dotnet-Foundation-MIT.txt` |
 | BBSMC API | https://api.bbsmc.net/v2 | 仅调用公开接口，不复制网站代码或素材 | 无 |
-| 名人堂头像 | 由 huogoooo、龙腾猫跃、username-xusir 提供 | 仅用于软件内鸣谢页，不用于其他用途 | 无 |
+| Noto Sans SC Medium | Google Fonts / Noto Sans SC variable | SIL Open Font License 1.1 | `licenses/Noto-Sans-SC-OFL.txt` |
+| 名人堂头像 | 由 huogoooo、龙腾猫跃、username-xusir、tidain 提供 | 仅用于软件内鸣谢页，不用于其他用途 | 无 |
 | HMCL | v3.16.4（仅分析） | GPL-3.0-or-later；不包含在安装包中 | 无 |
 
 构建期工具（不进入运行时）：Bun、Electron Builder、Sharp、png-to-ico。完整依赖版本在 `bun.lock` 与各 `packages.lock.json` 中。

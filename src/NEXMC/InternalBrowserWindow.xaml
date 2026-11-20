@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        FontFamily="{StaticResource AppFont}"
         Title="内置浏览器 · NEXMC"
         Width="1040" Height="780" MinWidth="760" MinHeight="520"
         WindowStartupLocation="CenterScreen"

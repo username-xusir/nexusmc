@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        FontFamily="{StaticResource AppFont}"
         Title="名人堂 · NEXMC"
         Width="900" Height="720"
         ResizeMode="NoResize"

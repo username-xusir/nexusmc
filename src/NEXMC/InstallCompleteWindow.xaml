@@ -4,6 +4,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         WindowBackdropType="Mica"
         ExtendsContentIntoTitleBar="True"
+        FontFamily="{StaticResource AppFont}"
         Title="NEXMC · 安装结果" Width="590" SizeToContent="Height"
         MinHeight="280" MaxHeight="620" WindowStartupLocation="CenterScreen"
         Background="{StaticResource PageBrush}" ResizeMode="NoResize">

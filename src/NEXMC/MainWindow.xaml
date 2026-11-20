@@ -6,6 +6,7 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         WindowBackdropType="Mica"
         ExtendsContentIntoTitleBar="True"
+        FontFamily="{StaticResource AppFont}"
         Title="nexus mc · Minecraft 下载器"
         Width="1180" Height="820" MinWidth="1120" MinHeight="680"
         WindowStartupLocation="CenterScreen"
@@ -77,9 +78,9 @@
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,10,0" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                     <Image Source="pack://application:,,,/assets/logo-n-white.png" Height="26" Width="46" Stretch="Uniform" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="nexus mc" Foreground="White" FontFamily="Segoe UI Variable Display, Microsoft YaHei UI, Segoe UI" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap"/>
+                        <TextBlock Text="nexus mc" Foreground="White" FontFamily="{StaticResource AppFont}" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         <Border Background="#22FFFFFF" CornerRadius="5" Padding="6,1" HorizontalAlignment="Left" Margin="0,3,0,0">
-                            <TextBlock x:Name="BrandVersionText" Text="v1.1.0" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
+                            <TextBlock x:Name="BrandVersionText" Text="v1.1.1" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
@@ -184,38 +185,40 @@
                         </Border>
 
                         <Border Style="{StaticResource Card}" Margin="0,16,0,0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="创建安装实例" Style="{StaticResource SectionTitle}"/>
-                                    <TextBlock Text="实例名称会用于启动器中的版本目录。" Style="{StaticResource MutedText}" Margin="0,5,0,16"/>
-                                    <StackPanel>
-                                        <TextBlock Text="实例名称" Style="{StaticResource FieldLabel}"/>
-                                        <TextBox x:Name="GameInstanceNameTextBox" MaxLength="120" TextChanged="InstallInput_Changed"/>
-                                        <TextBlock x:Name="GameNameValidationText" Style="{StaticResource MutedText}" Margin="0,6,0,0"/>
-                                        <TextBlock Text="安装目标由窗口顶部下拉菜单选择；下载方式（安装/仅下载到本地）在设置页切换" Style="{StaticResource MutedText}" Margin="0,3,0,0"/>
-                                    </StackPanel>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Width="188" VerticalAlignment="Bottom">
-                                    <Button x:Name="GameInstallButton" Content="开始安装" Style="{StaticResource PrimaryButton}" IsEnabled="False" Click="GameInstall_Click"/>
-                                    <TextBlock Text="安装期间可在下载任务中取消" Style="{StaticResource MutedText}" TextAlignment="Center" Margin="0,9,0,0"/>
-                                </StackPanel>
-                            </Grid>
+                            <StackPanel>
+                                <TextBlock Text="创建安装实例" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="实例名称会用于启动器中的版本目录。" Style="{StaticResource MutedText}" Margin="0,5,0,16"/>
+                                <TextBlock Text="实例名称" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="188"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="GameInstanceNameTextBox" MaxLength="120" Margin="0,0,16,0" TextChanged="InstallInput_Changed"/>
+                                    <Button Grid.Column="1" x:Name="GameInstallButton" Content="开始安装" Style="{StaticResource PrimaryButton}" IsEnabled="False" VerticalAlignment="Center" Click="GameInstall_Click"/>
+                                </Grid>
+                                <TextBlock x:Name="GameNameValidationText" Style="{StaticResource MutedText}" Margin="0,6,0,0"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="188"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="安装目标由窗口顶部下拉菜单选择；下载方式（安装/仅下载到本地）在设置页切换" Style="{StaticResource MutedText}" Margin="0,3,16,0" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Column="1" Text="安装期间可在下载任务中取消" Style="{StaticResource MutedText}" TextAlignment="Center" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                </Grid>
+                            </StackPanel>
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
 
                 <!-- 整合包 -->
-                <Grid x:Name="ModpackPage" Visibility="Collapsed" Margin="20,16,20,16">
+                <Grid x:Name="ModpackPage" Visibility="Collapsed" Margin="20,18,20,18">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Style="{StaticResource HeroPanel}" Margin="0,0,0,14">
+                    <Border Grid.Row="0" Style="{StaticResource HeroPanel}" Margin="0,0,0,18">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock x:Name="LocalModpackPathText" Text="本地包：未选择" Foreground="#C9C9C9" FontSize="12" MaxWidth="300" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -617,6 +620,14 @@
                                                     <TextBlock x:Name="CustomLauncherEmptyText" Text="还没有手动添加的启动器。自动检测结果会直接出现在顶部下拉框。" Style="{StaticResource MutedText}" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,10" IsHitTestVisible="False"/>
                                                 </Grid>
 
+                                                <DockPanel Margin="0,10,0,0">
+                                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                                        <Button x:Name="DisableLauncherButton" Content="停用当前目标" Style="{StaticResource GhostButton}" MinHeight="30" Padding="10,3" Click="DisableLauncher_Click"/>
+                                                        <Button x:Name="RestoreLaunchersButton" Content="恢复已停用" Style="{StaticResource GhostButton}" MinHeight="30" Padding="10,3" Margin="7,0,0,0" Click="RestoreLaunchers_Click"/>
+                                                    </StackPanel>
+                                                    <TextBlock x:Name="DisabledLaunchersStateText" Style="{StaticResource MutedText}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                </DockPanel>
+
                                                 <TextBlock Text="添加的目录兼容 PCL2、HMCL、Prism、官方启动器或其他标准 .minecraft 结构；NEXMC 只写入 versions，不修改启动器本体。" Style="{StaticResource MutedText}" FontSize="11" Margin="0,10,0,0"/>
                                                 <TextBlock x:Name="LauncherSettingsStateText" Style="{StaticResource MutedText}" Margin="0,8,0,0"/>
                                             </StackPanel>
@@ -769,11 +780,15 @@
                                                     <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,18,14">
                                                         <TextBlock Text="下载线程数" Style="{StaticResource FieldLabel}"/>
                                                         <ComboBox x:Name="DownloadThreadsComboBox">
+                                                            <ComboBoxItem Content="自动（按速度调整，最高 256 线程）" Tag="auto"/>
                                                             <ComboBoxItem Content="8 线程" Tag="8"/>
                                                             <ComboBoxItem Content="16 线程" Tag="16"/>
                                                             <ComboBoxItem Content="32 线程" Tag="32"/>
                                                             <ComboBoxItem Content="64 线程" Tag="64"/>
+                                                            <ComboBoxItem Content="128 线程" Tag="128"/>
+                                                            <ComboBoxItem Content="256 线程" Tag="256"/>
                                                         </ComboBox>
+                                                        <TextBlock Text="自动模式按实时下载速度增减连接；PCL2 内核上限 256 线程。" Style="{StaticResource MutedText}" FontSize="10" Margin="0,5,0,0"/>
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,14">
@@ -827,7 +842,7 @@
 
             <Border x:Name="StatusBorder" Grid.Row="3" Background="#F2F2F2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                 <DockPanel Margin="16,0">
-                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.1.0 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.1.1 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                     <TextBlock x:Name="LauncherTargetStateText" DockPanel.Dock="Right" Text="正在扫描启动器…" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" MaxWidth="400" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="16,0,0,0"/>
                     <TextBlock x:Name="StatusText" Text="正在准备界面…" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </DockPanel>

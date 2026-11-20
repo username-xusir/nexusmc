@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        FontFamily="{StaticResource AppFont}"
         Title="添加启动器"
         Width="600" Height="590"
         ResizeMode="NoResize"

@@ -117,7 +117,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
 
         await RefreshLaunchersAsync();
-        if (_launcherChoices.Count == 0) PromptAddLauncherIfNeeded();
+        if (_launcherChoices.Count == 0 && _settings.DisabledLaunchers.Count == 0) PromptAddLauncherIfNeeded();
         // 更新检查和版本列表互不依赖；先启动检查，避免版本源很慢时更新弹窗迟迟不出现。
         _ = CheckForUpdatesAsync(false);
         await RefreshVersionsAsync();
@@ -212,6 +212,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         finally
         {
             _launchersBusy = false;
+            UpdateDisabledLaunchersState();
         }
     }
 
@@ -237,6 +238,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         var added = dialog.Launcher;
         var normalized = NormalizePathOrOriginal(added.Directory);
+        _settings.DisabledLaunchers.RemoveAll(item =>
+            string.Equals(NormalizePathOrOriginal(item), normalized, StringComparison.OrdinalIgnoreCase));
         var existing = _customLaunchers.FirstOrDefault(item =>
             string.Equals(NormalizePathOrOriginal(item.Directory),
                 normalized, StringComparison.OrdinalIgnoreCase));
@@ -301,6 +304,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         if (result != MessageBoxResult.OK) return;
 
         _customLaunchers.Remove(selected);
+        var removedDirectory = NormalizePathOrOriginal(selected.Directory);
+        _settings.DisabledLaunchers.RemoveAll(item =>
+            string.Equals(NormalizePathOrOriginal(item), removedDirectory, StringComparison.OrdinalIgnoreCase));
         SyncCustomLaunchersToSettings();
         try
         {
@@ -315,6 +321,70 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         await RefreshLaunchersAsync();
         UpdateCustomLauncherState();
         ShowStatus("已从启动器列表移除；游戏文件未删除。", false);
+    }
+
+    private async void DisableLauncher_Click(object sender, RoutedEventArgs e)
+    {
+        if (LauncherTargetComboBox.SelectedItem is not LauncherChoice choice)
+        {
+            ShowStatus("请先在顶部下拉框选择一个启动器。", true);
+            return;
+        }
+        if (choice.Targets.Count != 1)
+        {
+            ShowStatus("“全部已识别启动器”不能一次停用；请先在下拉框选择单个启动器。", true);
+            return;
+        }
+
+        var target = choice.Targets[0];
+        var normalized = NormalizePathOrOriginal(target.Directory);
+        if (!_settings.DisabledLaunchers.Any(item =>
+                string.Equals(NormalizePathOrOriginal(item), normalized, StringComparison.OrdinalIgnoreCase)))
+        {
+            _settings.DisabledLaunchers.Add(normalized);
+        }
+        try
+        {
+            _settingsService.Save(_settings);
+        }
+        catch (Exception exception)
+        {
+            ShowError("停用启动器", exception);
+            return;
+        }
+
+        await RefreshLaunchersAsync();
+        UpdateDisabledLaunchersState();
+        ShowStatus($"已停用启动器：{target.Name}。它不会出现在安装目标下拉框；游戏文件未删除。", false);
+    }
+
+    private async void RestoreLaunchers_Click(object sender, RoutedEventArgs e)
+    {
+        if (_settings.DisabledLaunchers.Count == 0) return;
+        _settings.DisabledLaunchers.Clear();
+        try
+        {
+            _settingsService.Save(_settings);
+        }
+        catch (Exception exception)
+        {
+            ShowError("恢复启动器", exception);
+            return;
+        }
+
+        await RefreshLaunchersAsync();
+        UpdateDisabledLaunchersState();
+        ShowStatus("已恢复所有被停用的启动器。", false);
+    }
+
+    private void UpdateDisabledLaunchersState()
+    {
+        if (DisabledLaunchersStateText is null || RestoreLaunchersButton is null) return;
+        var count = _settings.DisabledLaunchers.Count;
+        DisabledLaunchersStateText.Text = count == 0
+            ? "没有停用启动器。"
+            : $"已停用 {count} 个启动器；它们不会出现在安装目标下拉框。";
+        RestoreLaunchersButton.IsEnabled = count > 0;
     }
 
     private void OpenSelectedLauncher_Click(object sender, RoutedEventArgs e)
@@ -1748,13 +1818,41 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             var fileName = SafeNetdiskFileName(resolved.FileName);
             var destination = UniqueLocalPath(Path.Combine(cacheDirectory,
                 $"{DateTime.Now:yyyyMMdd-HHmmss}-{fileName}"));
-            var downloadProgress = new Progress<(double Progress, string Message)>(update =>
+            var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(resolved.Cookie)) headers["Cookie"] = resolved.Cookie;
+            if (!string.IsNullOrWhiteSpace(resolved.Referer)) headers["Referer"] = resolved.Referer;
+            if (!string.IsNullOrWhiteSpace(resolved.UserAgent)) headers["User-Agent"] = resolved.UserAgent;
+            headers["Accept"] = "*/*";
+
+            // 路径 A：网盘 CDN 使用快速分片多连接；失败时自动回退路径 B（PCL2 内核）。
+            task.Report(new TargetProgress(targetId, 0.06, "正在尝试快速分片下载…", null));
+            var fastProgress = new Progress<(double Progress, string Message)>(update =>
             {
                 var overall = 0.06 + Math.Clamp(update.Progress, 0, 100) / 100.0 * 0.64;
                 task.Report(new TargetProgress(targetId, overall, update.Message, null));
             });
-            await _netdiskResolver.DownloadAsync(resolved, destination, downloadProgress, ct);
+            var usedFastPath = await NetdiskFastDownloader.TryDownloadAsync(
+                resolved.DownloadUrl, destination, headers, resolved.Size,
+                _settings.DownloadThreadsAuto, _settings.DownloadThreads, fastProgress, ct);
+            if (!usedFastPath)
+            {
+                // 路径 B：服务器不支持 Range 或快速路径失败时，交给 PCL2 多线程下载内核。
+                task.Report(new TargetProgress(targetId, 0.06, "快速分片不可用，切换到 PCL2 下载内核…", null));
+                var kernelProgress = new Progress<(double Progress, string Message)>(update =>
+                {
+                    var overall = 0.06 + Math.Clamp(update.Progress, 0, 1) * 0.64;
+                    task.Report(new TargetProgress(targetId, overall, update.Message, null));
+                });
+                await _service.DownloadNetdiskFileAsync(resolved.DownloadUrl, destination, headers,
+                    kernelProgress, ct);
+            }
             ct.ThrowIfCancellationRequested();
+            var downloadedSize = new FileInfo(destination).Length;
+            if (downloadedSize <= 0)
+                throw new NetdiskException("网盘下载完成，但本地文件为空。");
+            if (resolved.Size > 0 && downloadedSize < resolved.Size)
+                throw new NetdiskException(
+                    $"网盘下载不完整：应为 {resolved.Size:N0} 字节，实际 {downloadedSize:N0} 字节。");
 
             var localRequest = baseRequest with
             {
@@ -2066,13 +2164,16 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         SelectComboBoxTag(DefaultModpackSourceComboBox, _settings.DefaultModpackSource, "全部来源");
         ApplyDefaultModpackSource(_settings.DefaultModpackSource);
         FallbackModpackCheckBox.IsChecked = _settings.FallbackModpackSources;
-        SelectComboBoxTag(DownloadThreadsComboBox, _settings.DownloadThreads.ToString(), "16");
+        SelectComboBoxTag(DownloadThreadsComboBox,
+            _settings.DownloadThreadsAuto ? "auto" : _settings.DownloadThreads.ToString(),
+            _settings.DownloadThreadsAuto ? "auto" : "16");
         SelectComboBoxTag(DownloadSpeedComboBox, _settings.DownloadSpeedLimitMb.ToString(), "0");
         SelectComboBoxTag(RetryAttemptsComboBox, _settings.RetryAttempts.ToString(), "3");
         SelectComboBoxTag(RetryDelayComboBox, _settings.RetryDelaySeconds.ToString(), "10");
 
         SettingsStateText.Text = $"设置文件：{_settingsService.SettingsPath}";
         UpdateCustomLauncherState();
+        UpdateDisabledLaunchersState();
     }
 
     private static void SelectComboBoxTag(ComboBox comboBox, string? tag, string fallbackTag)
@@ -2242,8 +2343,11 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             _settings.GameDownloadSource = SelectedComboBoxTag(GameDownloadSourceComboBox, "auto");
             _settings.DefaultModpackSource = SelectedComboBoxTag(DefaultModpackSourceComboBox, "全部来源");
             _settings.FallbackModpackSources = FallbackModpackCheckBox.IsChecked == true;
-            _settings.DownloadThreads = int.TryParse(SelectedComboBoxTag(DownloadThreadsComboBox, "16"), out var threads)
-                ? Math.Clamp(threads, 1, 64)
+            var threadTag = SelectedComboBoxTag(DownloadThreadsComboBox, "auto");
+            _settings.DownloadThreadsAuto = string.Equals(threadTag, "auto", StringComparison.OrdinalIgnoreCase);
+            _settings.DownloadThreads = !_settings.DownloadThreadsAuto &&
+                int.TryParse(threadTag, out var threads)
+                ? Math.Clamp(threads, 1, 256)
                 : 16;
             _settings.DownloadSpeedLimitMb = int.TryParse(SelectedComboBoxTag(DownloadSpeedComboBox, "0"), out var speed)
                 ? Math.Clamp(speed, 0, 100)

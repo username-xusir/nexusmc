@@ -31,6 +31,8 @@ internal static class Program
         bool netdiskFixture = args.Contains("--netdisk-fixture", StringComparer.OrdinalIgnoreCase);
         bool netdiskResolve = args.Contains("--netdisk-resolve", StringComparer.OrdinalIgnoreCase);
         bool netdiskCookieTest = args.Contains("--netdisk-cookie-test", StringComparer.OrdinalIgnoreCase);
+        bool kernelDownload = args.Contains("--kernel-download", StringComparer.OrdinalIgnoreCase);
+        bool fastDownload = args.Contains("--fast-download", StringComparer.OrdinalIgnoreCase);
         bool iconFixture = args.Contains("--icon-fixture", StringComparer.OrdinalIgnoreCase);
         bool assetSourcesFixture = args.Contains("--asset-sources", StringComparer.OrdinalIgnoreCase);
         bool dualFixture = args.Contains("--dual-fixture", StringComparer.OrdinalIgnoreCase);
@@ -46,7 +48,7 @@ internal static class Program
             {
                 try
                 {
-                    exitCode = await Task.Run(() => mirrorFixture ? InstallMirrorFixture(args) : concurrentMetadataFixture ? ConcurrentMetadataFixture() : downloadOnlyFixture ? InstallDownloadOnlyFixture() : dualFixture ? InstallDualFixture() : assetSourcesFixture ? ShowAssetSources() : iconFixture ? VerifyIconDecode() : netdiskCookieTest ? TestNetdiskCookieStore() : netdiskResolve ? ResolveNetdiskFixture(args) : netdiskFixture ? InspectModpackExternal() : fabricFixture ? InstallFabricFixture() : neoforgeFixture ? InstallNeoForgeFixture() : bbsmcFixture ? InstallBbsmcFixture() : retryFixture ? RunRetryFixture() : modrinthFixture ? InstallModrinthFixture() : allOfCreateFixture ? InstallAllOfCreateFixture() : vanillaFixture ? InstallVanillaFixture() : encodingFixture ? VerifyEncodingFixture() : forgeFixture ? InstallForgeFixture() : allSources ? SearchAllSources() : searchCategories ? SearchCategories() : listLaunchers ? ListLaunchers() : installFixture ? InstallFixture() : VerifySources());
+                    exitCode = await Task.Run(() => mirrorFixture ? InstallMirrorFixture(args) : concurrentMetadataFixture ? ConcurrentMetadataFixture() : downloadOnlyFixture ? InstallDownloadOnlyFixture() : dualFixture ? InstallDualFixture() : assetSourcesFixture ? ShowAssetSources() : iconFixture ? VerifyIconDecode() : fastDownload ? TestFastDownload(args) : kernelDownload ? TestKernelDownload(args) : netdiskCookieTest ? TestNetdiskCookieStore() : netdiskResolve ? ResolveNetdiskFixture(args) : netdiskFixture ? InspectModpackExternal() : fabricFixture ? InstallFabricFixture() : neoforgeFixture ? InstallNeoForgeFixture() : bbsmcFixture ? InstallBbsmcFixture() : retryFixture ? RunRetryFixture() : modrinthFixture ? InstallModrinthFixture() : allOfCreateFixture ? InstallAllOfCreateFixture() : vanillaFixture ? InstallVanillaFixture() : encodingFixture ? VerifyEncodingFixture() : forgeFixture ? InstallForgeFixture() : allSources ? SearchAllSources() : searchCategories ? SearchCategories() : listLaunchers ? ListLaunchers() : installFixture ? InstallFixture() : VerifySources());
                 }
                 catch (Exception exception)
                 {
@@ -593,6 +595,83 @@ internal static class Program
         if (versions.Count == 0) throw new InvalidOperationException("No versions returned.");
         if (external == 0) throw new InvalidOperationException("No external/cloud URL was preserved.");
         return 0;
+    }
+
+    private static int TestFastDownload(string[] args)
+    {
+        var index = Array.FindIndex(args, item =>
+            item.Equals("--fast-download", StringComparison.OrdinalIgnoreCase));
+        var url = index >= 0 && index + 1 < args.Length ? args[index + 1] : string.Empty;
+        if (string.IsNullOrWhiteSpace(url))
+            throw new ArgumentException("用法：--fast-download <url> [--header name=value]...");
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (!args[i].Equals("--header", StringComparison.OrdinalIgnoreCase)) continue;
+            var split = args[i + 1].IndexOf('=');
+            if (split > 0) headers[args[i + 1][..split]] = args[i + 1][(split + 1)..];
+        }
+        var fileName = Path.GetFileName(new Uri(url).AbsolutePath);
+        if (string.IsNullOrWhiteSpace(fileName)) fileName = "fast-download.bin";
+        var destination = Path.Combine(Path.GetTempPath(), "NEXMC-fast-download",
+            $"{DateTime.Now:HHmmss}-{fileName}");
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var ok = NetdiskFastDownloader.TryDownloadAsync(url, destination, headers, 0,
+                autoThreads: true, configuredThreads: 16,
+                new Progress<(double Progress, string Message)>(value =>
+                    Console.WriteLine($"{value.Progress:F1}% {value.Message}")),
+                CancellationToken.None)
+            .GetAwaiter().GetResult();
+        if (!ok) { Console.WriteLine("FAST_DOWNLOAD=fallback"); return 2; }
+        var length = new FileInfo(destination).Length;
+        Console.WriteLine($"FAST_DOWNLOAD_OK {destination} {length} bytes");
+        return length > 0 ? 0 : 1;
+    }
+
+    private static int TestKernelDownload(string[] args)
+    {
+        var index = Array.FindIndex(args, item =>
+            item.Equals("--kernel-download", StringComparison.OrdinalIgnoreCase));
+        var url = index >= 0 && index + 1 < args.Length ? args[index + 1] : string.Empty;
+        if (string.IsNullOrWhiteSpace(url))
+            throw new ArgumentException("用法：--kernel-download <url> [--header name=value]...");
+
+        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (!args[i].Equals("--header", StringComparison.OrdinalIgnoreCase)) continue;
+            var raw = args[i + 1];
+            var split = raw.IndexOf('=');
+            if (split <= 0) continue;
+            headers[raw[..split]] = raw[(split + 1)..];
+        }
+
+        var fileName = Path.GetFileName(new Uri(url).AbsolutePath);
+        if (string.IsNullOrWhiteSpace(fileName)) fileName = "kernel-download.bin";
+        var destination = Path.Combine(Path.GetTempPath(), "NEXMC-kernel-download",
+            $"{DateTime.Now:HHmmss}-{fileName}");
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var service = new KernelService();
+        if (args.Contains("--auto", StringComparer.OrdinalIgnoreCase))
+        {
+            service.UpdateSettings(new UiSettings
+            {
+                DownloadThreadsAuto = true,
+                DownloadThreads = 16,
+                RetryAttempts = 3,
+                RetryDelaySeconds = 10,
+                GameDownloadSource = "auto"
+            });
+            Console.WriteLine("AUTO_THREADS=on");
+        }
+        service.DownloadNetdiskFileAsync(url, destination, headers,
+                new Progress<(double Progress, string Message)>(value =>
+                    Console.WriteLine($"{value.Progress * 100:F1}% {value.Message}")),
+                CancellationToken.None)
+            .GetAwaiter().GetResult();
+        var length = new FileInfo(destination).Length;
+        Console.WriteLine($"KERNEL_DOWNLOAD_OK {destination} {length} bytes");
+        return length > 0 ? 0 : 1;
     }
 
     private static int TestNetdiskCookieStore()

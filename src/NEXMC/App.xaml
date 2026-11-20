@@ -39,11 +39,13 @@
 
             <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
+            <!-- 应用正文字体：随安装包分发的 Noto Sans SC Medium。 -->
+            <FontFamily x:Key="AppFont">pack://application:,,,/assets/fonts/#Noto Sans SC Medium</FontFamily>
             <!-- Windows 10 只有 Segoe MDL2 Assets，Windows 11 才自带 Segoe Fluent Icons。 -->
             <FontFamily x:Key="SymbolFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
 
             <Style TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Segoe UI Variable, Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
                 <Setter Property="TextWrapping" Value="Wrap"/>
             </Style>
             <Style x:Key="PageTitle" TargetType="TextBlock">
@@ -70,6 +72,7 @@
                 <Setter Property="Background" Value="{StaticResource BrandGradient}"/>
                 <Setter Property="CornerRadius" Value="18"/>
                 <Setter Property="Padding" Value="24,20"/>
+                <Setter Property="MinHeight" Value="144"/>
                 <Setter Property="Effect">
                     <Setter.Value><DropShadowEffect BlurRadius="26" ShadowDepth="6" Opacity="0.16" Color="#000000"/></Setter.Value>
                 </Setter>
@@ -152,7 +155,7 @@
             </Style>
 
             <Style TargetType="TextBox">
-                <Setter Property="FontFamily" Value="Segoe UI Variable, Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 <Setter Property="Background" Value="#FBFBFB"/>
@@ -184,20 +187,20 @@
                 <Setter Property="MinHeight" Value="36"/>
                 <Setter Property="Padding" Value="9,5"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="FontFamily" Value="Segoe UI Variable, Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
                 <Setter Property="FontSize" Value="13"/>
             </Style>
 
             <Style TargetType="RadioButton">
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-                <Setter Property="FontFamily" Value="Segoe UI Variable, Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Margin" Value="0,0,18,0"/>
             </Style>
             <Style TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-                <Setter Property="FontFamily" Value="Segoe UI Variable, Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
             </Style>
 

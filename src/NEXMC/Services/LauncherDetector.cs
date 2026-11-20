@@ -121,7 +121,11 @@ public static class LauncherDetector
         }
 
         // 不按本机目录名给启动器加后缀；两个 PCL 都显示为 PCL，靠目录提示和版本数量区分。
+        var disabled = new HashSet<string>(
+            (settings.DisabledLaunchers ?? new List<string>()).Select(NormalizeDirectory),
+            StringComparer.OrdinalIgnoreCase);
         return results
+            .Where(item => !disabled.Contains(NormalizeDirectory(item.Directory)))
             .OrderByDescending(item => item.IsCustom)
             .ThenBy(item => item.Name, StringComparer.CurrentCulture)
             .ToList();
@@ -239,6 +243,13 @@ public static class LauncherDetector
                name.Contains("GDLauncher", StringComparison.OrdinalIgnoreCase) ||
                name.Contains("Modrinth", StringComparison.OrdinalIgnoreCase) ||
                name.Contains("CurseForge", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeDirectory(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        try { return Path.TrimEndingDirectorySeparator(Path.GetFullPath(path)); }
+        catch { return path.Trim(); }
     }
 
     private static string CleanLauncherName(string value)

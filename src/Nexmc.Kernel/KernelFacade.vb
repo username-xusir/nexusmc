@@ -102,7 +102,7 @@ Public NotInheritable Class KernelFacade
             Initialize()
             Settings.Set("ToolDownloadSource", Math.Clamp(downloadSource, 0, 2))
             Settings.Set("ToolDownloadVersion", Math.Clamp(versionSource, 0, 2))
-            Settings.Set("ToolDownloadThread", Math.Clamp(threadCount - 1, 0, 63))
+            Settings.Set("ToolDownloadThread", Math.Clamp(threadCount - 1, 0, 255))
             Settings.Set("ToolDownloadSpeed", Math.Clamp(speedSetting, 0, 42))
             ModNet.UpdateNetTaskSpeedLimitHigh(0)
         End SyncLock
@@ -320,6 +320,84 @@ Public NotInheritable Class KernelFacade
             Dim combo As New LoaderCombo(Of String)("NEXMC · " & name & " 安装", McInstallLoader(request)) With {.OnStateChanged = AddressOf McInstallState}
             combo.Start(versionFolder)
             RunLoader(combo, report, cancellation)
+        End SyncLock
+    End Sub
+
+    ''' <summary>
+    ''' 把已经解析出的直链交给 PCL 多线程下载引擎。Cookie / Referer / User-Agent 等请求头
+    ''' 会附加到每个分片请求上，供夸克 / UC 等网盘 CDN 校验。
+    ''' </summary>
+    Public Shared Function DownloadDirectUrl(url As String, localPath As String,
+            headers As Dictionary(Of String, String),
+            Optional report As Action(Of Double, String) = Nothing,
+            Optional cancellation As Threading.CancellationToken = Nothing,
+            Optional parallelTargetBps As Long = -1) As String
+        If String.IsNullOrWhiteSpace(url) Then Throw New ArgumentException("下载直链不能为空。", NameOf(url))
+        If String.IsNullOrWhiteSpace(localPath) OrElse Not IO.Path.IsPathFullyQualified(localPath) Then
+            Throw New ArgumentException("下载目标必须是完整的本地文件路径。", NameOf(localPath))
+        End If
+        Initialize()
+        If report Is Nothing Then report = Sub(value, message) System.Diagnostics.Debug.WriteLine(message)
+        If cancellation = Nothing Then cancellation = Threading.CancellationToken.None
+
+        Dim file As New NetFile({url}, localPath, Nothing, False,
+            If(headers, New Dictionary(Of String, String)))
+        Dim task As New LoaderDownload("NEXMC 网盘下载 " & file.LocalName,
+            New List(Of NetFile) From {file})
+        PushAutoParallelTarget(parallelTargetBps)
+        Try
+            task.Start()
+            Dim lastProgress = -1.0
+            Using registration = cancellation.Register(Sub() RunInThread(AddressOf task.Interrupt))
+                Do While task.State = LoadState.Loading OrElse task.State = LoadState.Waiting
+                    cancellation.ThrowIfCancellationRequested()
+                    Dim current = Math.Max(0, Math.Min(1, task.Progress))
+                    If Math.Abs(current - lastProgress) >= 0.005 Then
+                        report(current, "正在下载：" & file.LocalName)
+                        lastProgress = current
+                    End If
+                    Thread.Sleep(100)
+                Loop
+            End Using
+
+            If task.State = LoadState.Finished Then
+                report(1, "下载完成：" & file.LocalName)
+                Return localPath
+            End If
+            If task.State = LoadState.Interrupted Then Throw New OperationCanceledException("网盘下载已取消")
+            Dim detail = If(task.Error Is Nothing, "未知错误", task.Error.GetDetail())
+            Throw New InvalidOperationException("网盘下载失败：" & detail, task.Error)
+        Finally
+            If task.State = LoadState.Loading OrElse task.State = LoadState.Waiting Then task.Interrupt()
+            LoaderTaskbar.Remove(task)
+            PopAutoParallelTarget()
+        End Try
+    End Function
+
+    Private Shared ReadOnly AutoParallelLock As New Object
+    Private Shared AutoParallelUsers As Integer = 0
+    Private Shared AutoParallelSavedBps As Long = -1
+
+    Private Shared Sub PushAutoParallelTarget(targetBps As Long)
+        If targetBps <= 0 Then Return
+        SyncLock AutoParallelLock
+            If AutoParallelUsers = 0 Then
+                AutoParallelSavedBps = ModNet.AutoParallelTargetBps
+                ModNet.NetTaskSpeedLimitLow = targetBps
+            End If
+            AutoParallelUsers += 1
+            ModNet.AutoParallelTargetBps = Math.Max(ModNet.AutoParallelTargetBps, targetBps)
+        End SyncLock
+    End Sub
+
+    Private Shared Sub PopAutoParallelTarget()
+        SyncLock AutoParallelLock
+            If AutoParallelUsers <= 0 Then Return
+            AutoParallelUsers -= 1
+            If AutoParallelUsers = 0 Then
+                ModNet.AutoParallelTargetBps = AutoParallelSavedBps
+                ModNet.NetTaskSpeedLimitLow = 256 * 1024L
+            End If
         End SyncLock
     End Sub
 

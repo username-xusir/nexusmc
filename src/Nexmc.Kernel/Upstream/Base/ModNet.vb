@@ -421,6 +421,11 @@ Retry:
     ''' </summary>
     Public NetTaskSpeedLimitLow As Long = 256 * 1024L '256K/s
     ''' <summary>
+    ''' NEXMC 自动线程模式的目标速度（Byte/s）。大于 0 时，下载管理器会持续补线程，
+    ''' 直到接近该速度或达到 ToolDownloadThread 上限；-1 表示使用 PCL 原本的自适应逻辑。
+    ''' </summary>
+    Public AutoParallelTargetBps As Long = -1
+    ''' <summary>
     ''' 速度上限。若无限制则为 -1。
     ''' </summary>
     Public ReadOnly Property NetTaskSpeedLimitHigh As Long
@@ -796,6 +801,10 @@ Retry:
         ''' 是否模拟浏览器的 UserAgent 和 Referer。
         ''' </summary>
         Public SimulateBrowserHeaders As Boolean
+        ''' <summary>
+        ''' 下载请求需要额外携带的请求头（如网盘直链的 Cookie / Referer / User-Agent）。
+        ''' </summary>
+        Public CustomHeaders As Dictionary(Of String, String)
 
         ''' <summary>
         ''' 上次记速时的时间。
@@ -889,7 +898,7 @@ Retry:
         ''' 新建一个需要下载的文件。
         ''' </summary>
         ''' <param name="LocalPath">包含文件名的本地地址。</param>
-        Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Checker As FileChecker = Nothing, Optional SimulateBrowserHeaders As Boolean = False)
+        Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Checker As FileChecker = Nothing, Optional SimulateBrowserHeaders As Boolean = False, Optional CustomHeaders As Dictionary(Of String, String) = Nothing)
             Dim Sources As New List(Of NetSource)
             Dim Count As Integer = 0
             Urls = Urls.Distinct.ToArray
@@ -901,6 +910,7 @@ Retry:
             Me.LocalPath = LocalPath
             Me.Check = Checker
             Me.SimulateBrowserHeaders = SimulateBrowserHeaders
+            Me.CustomHeaders = CustomHeaders
             Me.LocalName = GetFileNameFromPath(LocalPath)
         End Sub
 
@@ -1016,6 +1026,12 @@ StartThread:
                 If SourcesOnce.Contains(Th.Source) AndAlso Th <> Th.Source.SingleThread Then GoTo SourceBreak
                 HttpRequest = New HttpRequestMessage(HttpMethod.Get, Th.Source.Url)
                 SecretHeadersSign(Th.Source.Url, HttpRequest, SimulateBrowserHeaders)
+                If CustomHeaders IsNot Nothing Then
+                    For Each Header In CustomHeaders
+                        HttpRequest.Headers.Remove(Header.Key)
+                        HttpRequest.Headers.TryAddWithoutValidation(Header.Key, Header.Value)
+                    Next
+                End If
                 CancelToken = New CancellationTokenSource(Timeout)
                 HostIp = DNSLookup(HttpRequest, CancelToken.Token) 'DNS 预解析
                 If Not Th.IsFirstThread Then HttpRequest.Headers.Range = New Headers.RangeHeaderValue(Th.DownloadStart, Nothing)
@@ -1821,7 +1837,10 @@ Retry:
                 '计算新的速度下限
                 Dim Limit As Long = 0
                 If SpeedLast.Count >= 10 Then Limit = SpeedLast.Take(10).Average * 0.85 '取近 1 秒的平均速度的 85%
-                If Limit > NetTaskSpeedLimitLow Then
+                If AutoParallelTargetBps > 0 Then
+                    'NEXMC 自动线程：以目标速度为下限，管理器会继续补连接到上限。
+                    NetTaskSpeedLimitLow = AutoParallelTargetBps
+                ElseIf Limit > NetTaskSpeedLimitLow Then
                     NetTaskSpeedLimitLow = Limit
                     Log("[Download] " & "速度下限已提升到 " & FormatFileSize(Limit))
                 End If
