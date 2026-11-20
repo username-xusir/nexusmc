@@ -720,11 +720,84 @@ internal static class Program
         var resolver = new NetdiskResolver();
         try
         {
-            var resolved = resolver.ResolveAsync(link, null,
+            var cookie = new NetdiskCookieStore().Load(link.Platform);
+            var resolved = resolver.ResolveAsync(link, cookie,
                 new Progress<string>(Console.WriteLine), CancellationToken.None, preferred)
                 .GetAwaiter().GetResult();
             Console.WriteLine($"RESOLVED name={resolved.FileName} size={resolved.Size} " +
                 $"urlHost={new Uri(resolved.DownloadUrl).Host}");
+            if (args.Contains("--show-url", StringComparer.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"RESOLVED_URL={resolved.DownloadUrl}");
+                Console.WriteLine($"RESOLVED_UA={resolved.UserAgent}");
+                Console.WriteLine($"RESOLVED_REFERER={resolved.Referer}");
+                Console.WriteLine("RESOLVED_COOKIE_NAMES=" +
+                    string.Join(",", resolved.Cookie.Split(';')
+                        .Select(part => part.Split('=')[0].Trim())
+                        .Where(name => name.Length > 0)));
+            }
+            if (args.Contains("--probe", StringComparer.OrdinalIgnoreCase) ||
+                args.Contains("--probe-multi", StringComparer.OrdinalIgnoreCase))
+            {
+                var multi = args.Contains("--probe-multi", StringComparer.OrdinalIgnoreCase);
+                var count = 1;
+                if (multi)
+                {
+                    var multiIndex = Array.FindIndex(args, item =>
+                        item.Equals("--probe-multi", StringComparison.OrdinalIgnoreCase));
+                    if (multiIndex >= 0 && multiIndex + 1 < args.Length &&
+                        int.TryParse(args[multiIndex + 1], out var parsedCount))
+                    {
+                        count = Math.Clamp(parsedCount, 1, 256);
+                    }
+                    else
+                    {
+                        count = 16;
+                    }
+                }
+
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+                var tasks = Enumerable.Range(0, count).Select(async index =>
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, resolved.DownloadUrl);
+                    request.Headers.TryAddWithoutValidation("Cookie", resolved.Cookie);
+                    request.Headers.TryAddWithoutValidation("Referer", resolved.Referer);
+                    request.Headers.TryAddWithoutValidation("User-Agent", resolved.UserAgent);
+                    var start = (long)index * 4096;
+                    request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(start, start + 1023);
+                    using var response = await client.SendAsync(request,
+                        HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                    return (int)response.StatusCode;
+                }).ToArray();
+                System.Threading.Tasks.Task.WaitAll(tasks, TimeSpan.FromSeconds(45));
+                var statuses = tasks.Select(task =>
+                    task.IsCompletedSuccessfully ? task.Result : -1).ToArray();
+                Console.WriteLine($"PROBE_STATUSES count={count} " +
+                    string.Join(",", statuses.GroupBy(status => status)
+                        .Select(group => $"{group.Key}x{group.Count()}")));
+            }
+            if (args.Contains("--fast", StringComparer.OrdinalIgnoreCase))
+            {
+                var destination = Path.Combine(Path.GetTempPath(), "NEXMC-netdisk-fast",
+                    resolved.FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Cookie"] = resolved.Cookie,
+                    ["Referer"] = resolved.Referer,
+                    ["User-Agent"] = resolved.UserAgent,
+                    ["Accept"] = "*/*"
+                };
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                var ok = NetdiskFastDownloader.TryDownloadAsync(resolved.DownloadUrl, destination,
+                    headers, resolved.Size, true, 16,
+                    new Progress<(double Progress, string Message)>(value =>
+                        Console.WriteLine($"{value.Progress:F1}% {value.Message}")),
+                    CancellationToken.None).GetAwaiter().GetResult();
+                stopwatch.Stop();
+                var length = File.Exists(destination) ? new FileInfo(destination).Length : 0;
+                Console.WriteLine($"FAST_RESULT={ok} size={length} elapsed={stopwatch.Elapsed.TotalSeconds:F1}s");
+            }
             if (args.Contains("--download", StringComparer.OrdinalIgnoreCase))
             {
                 var destination = Path.Combine(Path.GetTempPath(), "NEXMC-netdisk-smoke",
