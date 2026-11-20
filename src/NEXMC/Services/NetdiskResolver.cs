@@ -240,7 +240,7 @@ public sealed class NetdiskResolver
     {
         status?.Report("检测到直链文件，正在读取文件信息…");
         using var head = new HttpRequestMessage(HttpMethod.Head, link.OriginalUrl);
-        head.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.2");
+        head.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.4");
         using var headResponse = await ApiClient.SendAsync(head, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
         var fileName = headResponse.Content.Headers.ContentDisposition?.FileNameStar
@@ -251,12 +251,12 @@ public sealed class NetdiskResolver
         {
             if (string.IsNullOrWhiteSpace(fileName)) fileName = "modpack.zip";
             return new ResolvedNetdiskFile(fileName, size, link.OriginalUrl, string.Empty,
-                "NEXMC/1.1.2", string.Empty, NetdiskPlatform.Direct);
+                "NEXMC/1.1.4", string.Empty, NetdiskPlatform.Direct);
         }
 
         // 部分直链服务器不支持 HEAD；用 1 字节 Range 重新确认。
         using var probe = new HttpRequestMessage(HttpMethod.Get, link.OriginalUrl);
-        probe.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.2");
+        probe.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.4");
         probe.Headers.TryAddWithoutValidation("Range", "bytes=0-0");
         using var probeResponse = await ApiClient.SendAsync(probe, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
@@ -270,7 +270,7 @@ public sealed class NetdiskResolver
         if (string.IsNullOrWhiteSpace(fileName)) fileName = "modpack.zip";
         size = probeResponse.Content.Headers.ContentRange?.Length ?? size;
         return new ResolvedNetdiskFile(fileName, size, link.OriginalUrl, string.Empty,
-            "NEXMC/1.1.2", string.Empty, NetdiskPlatform.Direct);
+            "NEXMC/1.1.4", string.Empty, NetdiskPlatform.Direct);
     }
 
     private async Task<ResolvedNetdiskFile> ResolveQuarkAsync(ParsedNetdiskLink link, string cookie,
@@ -493,7 +493,7 @@ public sealed class NetdiskResolver
         AddHeaders(request, cookie, QuarkUserAgent, null, null);
         using var response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
-        var guestCookie = ExtractPugs(response);
+        var guestCookie = ExtractResponseCookies(response);
         var text = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
         var root = ParseJson(text);
         var code = Int(root, "code");
@@ -588,7 +588,7 @@ public sealed class NetdiskResolver
                 "\"Not=A?Brand\";v=\"99\", \"Chromium\";v=\"100\", \"Google Chrome\";v=\"100\"");
         using var response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
-        var guestCookie = ExtractPugs(response);
+        var guestCookie = ExtractResponseCookies(response);
         var text = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
         var root = ParseJson(text);
         var code = Int(root, "code");
@@ -803,33 +803,14 @@ public sealed class NetdiskResolver
         return root["data"] as JsonObject ?? new JsonObject();
     }
 
-    private static string? ExtractPugs(HttpResponseMessage response)
+    private static string? ExtractResponseCookies(HttpResponseMessage response)
     {
         if (!response.Headers.TryGetValues("Set-Cookie", out var values)) return null;
-        foreach (var value in values)
-        {
-            var first = value.Split(';', 2)[0].Trim();
-            if (first.StartsWith("__pugs=", StringComparison.Ordinal) && first.Length > "__pugs=".Length)
-                return first;
-        }
-        return null;
+        return NetdiskCookieHeader.FromSetCookies(values);
     }
 
-    private static string MergeCookies(string? first, string? second)
-    {
-        var parts = new List<string>();
-        foreach (var cookie in new[] { first, second })
-        {
-            if (string.IsNullOrWhiteSpace(cookie)) continue;
-            foreach (var part in cookie.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                var name = part.Split('=', 2)[0].Trim();
-                parts.RemoveAll(existing => existing.StartsWith(name + "=", StringComparison.Ordinal));
-                parts.Add(part);
-            }
-        }
-        return string.Join("; ", parts);
-    }
+    private static string MergeCookies(string? first, string? second) =>
+        NetdiskCookieHeader.Merge(first, second);
 
     private static string NormalizeCookie(string? cookie) => (cookie ?? string.Empty).Trim();
 

@@ -586,7 +586,7 @@ public sealed class KernelService : INexmcService
         {
             using var request = new HttpRequestMessage(HttpMethod.Get,
                 "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
-            request.Headers.UserAgent.ParseAdd("NEXMC/1.1.2");
+            request.Headers.UserAgent.ParseAdd("NEXMC/1.1.4");
             using var response = await MirrorProbeClient.SendAsync(request,
                 HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
             ok = response.IsSuccessStatusCode;

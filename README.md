@@ -5,7 +5,7 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](https://dotnet.microsoft.com/)
 [![Windows](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4.svg)](#系统要求)
-[![Version](https://img.shields.io/badge/version-1.1.2-black.svg)](docs/1.1.2-更新说明.md)
+[![Version](https://img.shields.io/badge/version-1.1.4-black.svg)](docs/1.1.4-更新说明.md)
 
 > NEXMC 是第三方二次创作，不是 PCL 官方版本。PCL 下载组件的版权归龙腾猫跃所有，详见 [NOTICE](NOTICE) 与 [licenses/PCL-LICENCE.txt](licenses/PCL-LICENCE.txt)。
 
@@ -32,15 +32,15 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 - **校验**：安装完成后校验版本 JSON、客户端 JAR、libraries、assets。
 - **名人堂**：设置页可查看鸣谢。
 
-## 1.1.2 更新
+## 1.1.4 更新
 
-- 更新检查增加 10 分钟本地缓存，重复启动不会反复请求 GitHub。
-- 使用 ETag 条件请求，GitHub 返回 304 时直接复用上次结果。
-- 同时处理 403 / 429，并读取 `Retry-After` 或 `X-RateLimit-Reset`，提示具体的恢复时间。
-- 手动“检查更新”仍然强制查询最新 Release。
+- 修复更新弹窗里“发现新版本”和 Release 标题重叠的问题；标题现在单独占一行。
+- 加入 1.1.4 更新横幅，更新弹窗和 Release 都可以使用。
+- 保留 1.1.3 的夸克 412 修复：取链响应刷新的 `__puus` 等 Cookie 会合并进下载请求。
+- 保留 1.1.2 的更新检查缓存、ETag 条件请求和 403 / 429 恢复时间提示。
 - 保留 1.1.1 的 Noto Sans SC Medium、启动器停用、自动 / 256 线程、网盘快速分片和界面布局修正。
 
-完整记录见 [CHANGELOG.md](CHANGELOG.md) 和 [1.1.2 更新说明](docs/1.1.2-更新说明.md)。
+完整记录见 [CHANGELOG.md](CHANGELOG.md) 和 [1.1.4 更新说明](docs/1.1.4-更新说明.md)。
 
 ![整合包列表](docs/images/modpacks.png)
 
@@ -51,17 +51,17 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 安装包已放在本仓库根目录：
 
 ```text
-NEXMC-Setup-1.1.2.exe
-NEXMC-Setup-1.1.2.sha256.txt
+NEXMC-Setup-1.1.4.exe
+NEXMC-Setup-1.1.4.sha256.txt
 ```
 
-1. 运行 `NEXMC-Setup-1.1.2.exe`，按向导安装到当前用户目录，无需管理员权限。
+1. 运行 `NEXMC-Setup-1.1.4.exe`，按向导安装到当前用户目录，无需管理员权限。
 2. 从开始菜单或桌面快捷方式启动。
 3. 顶部下拉框选择安装目标；找不到启动器时点 `+`，选择启动器 EXE 或 `.minecraft` 目录。
 4. 需要校验安装包时：
 
 ```powershell
-Get-FileHash .\NEXMC-Setup-1.1.2.exe -Algorithm SHA256
+Get-FileHash .\NEXMC-Setup-1.1.4.exe -Algorithm SHA256
 ```
 
 安装包是 self-contained 构建，已经包含 .NET 10 运行时；普通用户安装后直接运行，不需要另外安装 .NET。只有从源码编译时才需要 .NET 10 SDK。
@@ -98,7 +98,7 @@ bun install
 powershell -ExecutionPolicy Bypass -File build/package.ps1
 ```
 
-`package.ps1` 会优先使用 `tools\dotnet\dotnet.exe`（如果存在），否则使用 PATH 中的 `dotnet`。产物在 `dist\installer\NEXMC-Setup-1.1.2.exe`。
+`package.ps1` 会优先使用 `tools\dotnet\dotnet.exe`（如果存在），否则使用 PATH 中的 `dotnet`。产物在 `dist\installer\NEXMC-Setup-1.1.4.exe`。
 
 ## 项目结构
 

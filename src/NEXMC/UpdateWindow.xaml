@@ -67,8 +67,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="NewVersionText" Text="发现新版本" FontSize="25" FontWeight="SemiBold"/>
-            <TextBlock x:Name="ReleaseTitleText" Style="{StaticResource MutedText}" FontSize="13" Margin="0,6,0,0" TextWrapping="Wrap"/>
+            <TextBlock x:Name="NewVersionText" Grid.Row="0" Text="发现新版本" FontSize="25" FontWeight="SemiBold"/>
+            <TextBlock x:Name="ReleaseTitleText" Grid.Row="1" Style="{StaticResource MutedText}" FontSize="13" Margin="0,6,0,0" TextWrapping="Wrap"/>
             <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="18,14">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
