@@ -60,7 +60,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Border Grid.Row="2" Background="#FAFAFA" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="22,12">
+        <Border Grid.Row="2" Background="#181818" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="22,12">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="取消" Width="88" Style="{StaticResource GhostButton}" Click="Cancel_Click" Margin="0,0,9,0"/>

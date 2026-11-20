@@ -42,9 +42,9 @@
                 <Border VerticalAlignment="Bottom" Height="78" IsHitTestVisible="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#00FFFFFF" Offset="0"/>
-                            <GradientStop Color="#9AFFFFFF" Offset="0.58"/>
-                            <GradientStop Color="#FFFFFFFF" Offset="1"/>
+                            <GradientStop Color="#00080808" Offset="0"/>
+                            <GradientStop Color="#99090909" Offset="0.58"/>
+                            <GradientStop Color="#FF090909" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                     <Border.Effect>
@@ -79,7 +79,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Background="#F2F2F2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="24,12">
+        <Border Grid.Row="3" Background="#101010" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="24,12">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

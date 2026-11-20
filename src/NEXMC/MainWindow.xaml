@@ -79,8 +79,8 @@
                     <Image Source="pack://application:,,,/assets/logo-n-white.png" Height="26" Width="46" Stretch="Uniform" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="nexus mc" Foreground="White" FontFamily="{StaticResource AppFont}" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap"/>
-                        <Border Background="#22FFFFFF" CornerRadius="5" Padding="6,1" HorizontalAlignment="Left" Margin="0,3,0,0">
-                            <TextBlock x:Name="BrandVersionText" Text="v1.1.4" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
+                        <Border Background="#22FFFFFF" CornerRadius="18" Padding="6,1" HorizontalAlignment="Left" Margin="0,3,0,0">
+                            <TextBlock x:Name="BrandVersionText" Text="v1.1.5" Foreground="#E8E8E8" FontSize="9" FontWeight="SemiBold" TextWrapping="NoWrap"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
@@ -113,7 +113,7 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Background="{StaticResource PageBrush}">
                 <!-- 游戏下载 -->
                 <ScrollViewer x:Name="GamePage" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="20,18,20,20">
@@ -221,7 +221,7 @@
                     <Border Grid.Row="0" Style="{StaticResource HeroPanel}" Margin="0,0,0,18">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock x:Name="LocalModpackPathText" Text="本地包：未选择" Foreground="#C9C9C9" FontSize="12" MaxWidth="300" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock x:Name="LocalModpackPathText" Text="本地包：未选择" Foreground="#B8B8B8" FontSize="12" MaxWidth="300" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Button x:Name="BrowseLocalModpackButton" Content="从本地安装" Style="{StaticResource SecondaryButton}" Click="BrowseLocalModpack_Click"/>
                                 <Button x:Name="ClearLocalModpackButton" Content="清除" Style="{StaticResource GhostButton}" Foreground="White" BorderBrush="#55FFFFFF" IsEnabled="False" Margin="7,0,0,0" Click="ClearLocalModpack_Click"/>
                             </StackPanel>
@@ -261,8 +261,8 @@
                                     <Popup x:Name="ModpackSourcePopup"
                                            PlacementTarget="{Binding ElementName=ModpackSourceButton}"
                                            Placement="Bottom" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
-                                        <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                                                CornerRadius="10" Padding="14" Margin="0,6,0,0" Width="220">
+                                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                CornerRadius="18" Padding="14" Margin="0,6,0,0" Width="220">
                                             <StackPanel>
                                                 <TextBlock Text="下载来源（可多选）" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                                 <CheckBox x:Name="SourceBbsmcCheckBox" Content="BBSMC" Tag="BBSMC" IsChecked="True"
@@ -335,7 +335,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <Border Width="54" Height="54" CornerRadius="9" Background="#EFEFEF" Margin="0,0,13,0" ClipToBounds="True">
+                                                    <Border Width="54" Height="54" CornerRadius="18" Background="#242424" Margin="0,0,13,0" ClipToBounds="True">
                                                         <Grid>
                                                             <TextBlock Text="{Binding Initial}" FontSize="21" FontWeight="Bold" Foreground="#9A9A9A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             <controls:ModpackIcon IconUrl="{Binding IconUrl}"/>
@@ -343,7 +343,7 @@
                                                     </Border>
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                         <DockPanel Margin="0,0,0,4">
-                                                            <Border DockPanel.Dock="Right" Background="{StaticResource SoftBlueBrush}" CornerRadius="6" Padding="7,2" Margin="8,0,0,0">
+                                                            <Border DockPanel.Dock="Right" Background="{StaticResource SoftBlueBrush}" CornerRadius="18" Padding="7,2" Margin="8,0,0,0">
                                                                 <TextBlock Text="{Binding Source}" Foreground="{StaticResource BlueBrush}" FontSize="9"/>
                                                             </Border>
                                                             <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
@@ -386,7 +386,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Width="88" Height="88" CornerRadius="12" Background="#EFEFEF" ClipToBounds="True" VerticalAlignment="Top">
+                                    <Border Width="88" Height="88" CornerRadius="18" Background="#242424" ClipToBounds="True" VerticalAlignment="Top">
                                         <Grid>
                                             <TextBlock Text="N" FontSize="28" FontWeight="Bold" Foreground="#9A9A9A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <controls:ModpackIcon IconUrl="{Binding SelectedItem.IconUrl, ElementName=ModpackProjectsList}"/>
@@ -400,8 +400,8 @@
                                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="#F0F0F0" CornerRadius="5" Padding="7,2" Margin="0,0,5,4">
-                                                        <TextBlock Text="{Binding}" FontSize="10" Foreground="#555555"/>
+                                                    <Border Background="#242424" CornerRadius="18" Padding="7,2" Margin="0,0,5,4">
+                                                        <TextBlock Text="{Binding}" FontSize="10" Foreground="#B8B8B8"/>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -504,8 +504,8 @@
                             </StackPanel>
                         </DockPanel>
                     </Border>
-                    <Grid Grid.Row="1">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Grid.Row="1" Background="Transparent">
+                        <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="TaskItemsControl">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -527,7 +527,7 @@
                                                 <ItemsControl ItemsSource="{Binding Targets}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Border Background="#FAFAFA" BorderBrush="#E4E4E4" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,9">
+                                                            <Border Background="#181818" BorderThickness="0" CornerRadius="18" Padding="14" Margin="0,0,0,9">
                                                                 <StackPanel>
                                                                     <DockPanel Margin="0,0,0,9">
                                                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
@@ -610,8 +610,8 @@
                                                                         <TextBlock Text="{Binding Directory}" Style="{StaticResource MutedText}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                                                                         <TextBlock Text="{Binding ExecutablePath}" Style="{StaticResource MutedText}" FontSize="10" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                                                                     </StackPanel>
-                                                                    <Border Grid.Column="1" Background="#F0F0F0" CornerRadius="5" Padding="7,2" VerticalAlignment="Top">
-                                                                        <TextBlock Text="手动添加" FontSize="9" Foreground="#555555"/>
+                                                                    <Border Grid.Column="1" Background="#242424" CornerRadius="18" Padding="7,2" VerticalAlignment="Top">
+                                                                        <TextBlock Text="手动添加" FontSize="9" Foreground="#B8B8B8"/>
                                                                     </Border>
                                                                 </Grid>
                                                             </DataTemplate>
@@ -641,16 +641,16 @@
                                                     <TextBlock Text="名人堂" Style="{StaticResource SectionTitle}"/>
                                                     <TextBlock Text="鸣谢 PCL2 下载内核、云析网盘解析思路、NEXMC 开发者和内测人员。" Style="{StaticResource MutedText}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                                                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#EFEFEF" Margin="0,0,8,0">
+                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#242424" Margin="0,0,8,0">
                                                             <Image Source="pack://application:,,,/assets/hall/huogoooo.png" Stretch="UniformToFill"/>
                                                         </Border>
-                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#EFEFEF" Margin="0,0,8,0">
+                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#242424" Margin="0,0,8,0">
                                                             <Image Source="pack://application:,,,/assets/hall/longtengmaoyue.png" Stretch="UniformToFill"/>
                                                         </Border>
-                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#EFEFEF" Margin="0,0,8,0">
+                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#242424" Margin="0,0,8,0">
                                                             <Image Source="pack://application:,,,/assets/hall/username-xusir.png" Stretch="UniformToFill"/>
                                                         </Border>
-                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#EFEFEF">
+                                                        <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True" Background="#242424">
                                                             <Image Source="pack://application:,,,/assets/hall/tidain.png" Stretch="UniformToFill"/>
                                                         </Border>
                                                     </StackPanel>
@@ -680,7 +680,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <Border Grid.Column="0" Background="#F8F8F8" CornerRadius="10" Padding="14" Margin="0,0,8,0">
+                                                    <Border Grid.Column="0" Background="#171717" CornerRadius="18" Padding="14" Margin="0,0,8,0">
                                                         <StackPanel>
                                                             <DockPanel>
                                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
@@ -692,7 +692,7 @@
                                                             <TextBlock x:Name="QuarkAccountStateText" Style="{StaticResource MutedText}" FontSize="11" Margin="0,8,0,0" Text="未登录"/>
                                                         </StackPanel>
                                                     </Border>
-                                                    <Border Grid.Column="1" Background="#F8F8F8" CornerRadius="10" Padding="14" Margin="8,0,0,0">
+                                                    <Border Grid.Column="1" Background="#171717" CornerRadius="18" Padding="14" Margin="8,0,0,0">
                                                         <StackPanel>
                                                             <DockPanel>
                                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
@@ -840,9 +840,9 @@
                                 </ScrollViewer>
             </Grid>
 
-            <Border x:Name="StatusBorder" Grid.Row="3" Background="#F2F2F2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Border x:Name="StatusBorder" Grid.Row="3" Background="#101010" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                 <DockPanel Margin="16,0">
-                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.1.4 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                    <TextBlock x:Name="FooterVersionText" DockPanel.Dock="Right" Text="NEXMC 1.1.5 · Fluent 2" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                     <TextBlock x:Name="LauncherTargetStateText" DockPanel.Dock="Right" Text="正在扫描启动器…" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" MaxWidth="400" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="16,0,0,0"/>
                     <TextBlock x:Name="StatusText" Text="正在准备界面…" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </DockPanel>

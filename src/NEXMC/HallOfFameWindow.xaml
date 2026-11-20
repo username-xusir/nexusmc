@@ -41,7 +41,7 @@
                     <Border Style="{StaticResource Card}" Padding="18" Margin="0,0,7,7" Cursor="Hand"
                             Tag="https://afdian.com/a/LTCat" MouseLeftButtonUp="Card_Click" ToolTip="打开爱发电：龙腾猫跃">
                         <StackPanel HorizontalAlignment="Center">
-                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
+                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#242424">
                                 <Image Source="pack://application:,,,/assets/hall/longtengmaoyue.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
                             <TextBlock Text="龙腾猫跃" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
@@ -53,7 +53,7 @@
                     <Border Style="{StaticResource Card}" Padding="18" Margin="7,0,0,7" Cursor="Hand"
                             Tag="https://github.com/username-xusir" MouseLeftButtonUp="Card_Click" ToolTip="打开 GitHub：username-xusir">
                         <StackPanel HorizontalAlignment="Center">
-                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
+                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#242424">
                                 <Image Source="pack://application:,,,/assets/hall/username-xusir.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
                             <TextBlock Text="username-xusir" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
@@ -65,7 +65,7 @@
                     <Border Style="{StaticResource Card}" Padding="18" Margin="0,7,7,0" Cursor="Hand"
                             Tag="https://github.com/tidain" MouseLeftButtonUp="Card_Click" ToolTip="打开 GitHub：tidain">
                         <StackPanel HorizontalAlignment="Center">
-                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
+                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#242424">
                                 <Image Source="pack://application:,,,/assets/hall/tidain.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
                             <TextBlock Text="tidain" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
@@ -76,7 +76,7 @@
 
                     <Border Style="{StaticResource Card}" Padding="18" Margin="7,7,0,0">
                         <StackPanel HorizontalAlignment="Center">
-                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#EFEFEF">
+                            <Border Width="104" Height="104" CornerRadius="52" ClipToBounds="True" Background="#242424">
                                 <Image Source="pack://application:,,,/assets/hall/huogoooo.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
                             <TextBlock Text="huogoooo" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0"/>
@@ -90,7 +90,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Border Grid.Row="2" Background="#FAFAFA" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="22,12">
+        <Border Grid.Row="2" Background="#181818" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="22,12">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="关闭" Width="96" Style="{StaticResource PrimaryButton}" Click="Close_Click"/>
                 <TextBlock Text="NEXMC 不会修改被鸣谢项目的名称、图标或版权信息。" Style="{StaticResource MutedText}" VerticalAlignment="Center"/>

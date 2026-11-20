@@ -38,7 +38,7 @@
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
             <Grid>
                 <wv2:WebView2 x:Name="Browser"/>
-                <Border x:Name="ManualPanel" Visibility="Collapsed" Background="#F7F7F7" Padding="28">
+                <Border x:Name="ManualPanel" Visibility="Collapsed" Background="#171717" Padding="28">
                     <StackPanel MaxWidth="680" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="内置浏览器不可用" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <TextBlock Style="{StaticResource MutedText}" TextAlignment="Center" Margin="0,8,0,16"

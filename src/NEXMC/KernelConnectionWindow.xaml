@@ -22,7 +22,7 @@
                     <TextBlock Text="内核连接未完成" FontSize="25" FontWeight="SemiBold"/>
                     <TextBlock Text="NEXMC 已启动，但真实下载内核尚不可用。" Style="{StaticResource MutedText}" FontSize="13" Margin="0,8,0,16"/>
                 </StackPanel>
-                <Border Grid.Row="1" Background="#F6F8FB" CornerRadius="9" Padding="14">
+                <Border Grid.Row="1" Background="#171717" CornerRadius="14" Padding="14">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <TextBox x:Name="DetailsText" IsReadOnly="True" BorderThickness="0" Background="Transparent"
                                  TextWrapping="Wrap" VerticalContentAlignment="Top" FontSize="12"/>
