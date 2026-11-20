@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using NEXMC.Services;
 using Xunit;
 
@@ -114,5 +117,29 @@ public sealed class UpdateServiceTests
         {
             File.Delete(fixture);
         }
+    }
+
+    [Fact]
+    public void ForbiddenResponseReportsRateLimitResetTime()
+    {
+        using var response = new HttpResponseMessage(HttpStatusCode.Forbidden);
+        response.Headers.TryAddWithoutValidation("X-RateLimit-Reset", "1795172109");
+
+        var message = UpdateService.DescribeHttpFailure(response);
+
+        Assert.Contains("配额已用完", message);
+        Assert.Contains("恢复", message);
+    }
+
+    [Fact]
+    public void TooManyRequestsHonorsRetryAfter()
+    {
+        using var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
+
+        var message = UpdateService.DescribeHttpFailure(response);
+
+        Assert.Contains("配额已用完", message);
+        Assert.Contains("恢复", message);
     }
 }

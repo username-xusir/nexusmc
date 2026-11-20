@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -34,6 +35,8 @@ public sealed class UpdateService
 {
     public const string Repository = "username-xusir/nexusmc";
     private const string LatestReleaseUrl = "https://api.github.com/repos/" + Repository + "/releases/latest";
+    private const string CacheFileName = "update-cache.json";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
     private static readonly HttpClient ApiClient = new() { Timeout = TimeSpan.FromSeconds(15) };
     private static readonly HttpClient DownloadClient = new() { Timeout = Timeout.InfiniteTimeSpan };
 
@@ -41,6 +44,7 @@ public sealed class UpdateService
     {
         ApiClient.DefaultRequestHeaders.UserAgent.ParseAdd("NEXMC-AutoUpdate");
         ApiClient.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+        ApiClient.DefaultRequestHeaders.TryAddWithoutValidation("X-GitHub-Api-Version", "2022-11-28");
         DownloadClient.DefaultRequestHeaders.UserAgent.ParseAdd("NEXMC-AutoUpdate");
     }
 
@@ -53,7 +57,11 @@ public sealed class UpdateService
         return Normalize(assembly);
     }
 
-    public async Task<UpdateCheckResult> CheckAsync(Version currentVersion, CancellationToken cancellationToken = default)
+    public Task<UpdateCheckResult> CheckAsync(Version currentVersion, CancellationToken cancellationToken = default) =>
+        CheckAsync(currentVersion, false, cancellationToken);
+
+    public async Task<UpdateCheckResult> CheckAsync(Version currentVersion, bool force,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -65,16 +73,43 @@ public sealed class UpdateService
             }
             else
             {
-                using var response = await ApiClient.GetAsync(LatestReleaseUrl, cancellationToken).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
+                var cache = LoadCache();
+                var now = DateTimeOffset.UtcNow;
+                if (!force && cache is not null && now - cache.CheckedAt < CacheTtl)
                 {
-                    return new UpdateCheckResult(false, null,
-                        response.StatusCode == System.Net.HttpStatusCode.Forbidden
-                            ? "GitHub 暂时限制了更新查询，请稍后再试。"
-                            : $"检查更新失败：HTTP {(int)response.StatusCode}",
-                        true);
+                    json = cache.Json;
                 }
-                json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                else
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, LatestReleaseUrl);
+                    if (cache is not null && !string.IsNullOrWhiteSpace(cache.ETag))
+                    {
+                        request.Headers.TryAddWithoutValidation("If-None-Match", cache.ETag);
+                    }
+
+                    using var response = await ApiClient.SendAsync(request,
+                        HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    if (response.StatusCode == HttpStatusCode.NotModified && cache is not null)
+                    {
+                        json = cache.Json;
+                        cache.CheckedAt = now;
+                        SaveCache(cache);
+                    }
+                    else if (!response.IsSuccessStatusCode)
+                    {
+                        return new UpdateCheckResult(false, null, DescribeHttpFailure(response), true);
+                    }
+                    else
+                    {
+                        json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                        SaveCache(new UpdateCache
+                        {
+                            Json = json,
+                            ETag = response.Headers.ETag?.Tag ?? "",
+                            CheckedAt = now
+                        });
+                    }
+                }
             }
 
             using var document = JsonDocument.Parse(json);
@@ -175,6 +210,70 @@ public sealed class UpdateService
         {
             return new UpdateCheckResult(false, null,
                 "检查更新失败：" + exception.GetBaseException().Message, true);
+        }
+    }
+
+    internal static string DescribeHttpFailure(HttpResponseMessage response)
+    {
+        if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests)
+        {
+            var retryAt = GetRetryAt(response);
+            return retryAt is null
+                ? "GitHub 暂时限制了更新查询，请稍后再试。"
+                : $"GitHub 更新查询配额已用完，将在 {retryAt.Value:HH:mm} 恢复。";
+        }
+
+        return $"检查更新失败：HTTP {(int)response.StatusCode}";
+    }
+
+    private static DateTimeOffset? GetRetryAt(HttpResponseMessage response)
+    {
+        if (response.Headers.RetryAfter?.Delta is { } delta)
+        {
+            return DateTimeOffset.Now + delta;
+        }
+        if (response.Headers.RetryAfter?.Date is { } date)
+        {
+            return date.ToLocalTime();
+        }
+        if (response.Headers.TryGetValues("X-RateLimit-Reset", out var values) &&
+            long.TryParse(values.FirstOrDefault(), out var epoch))
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(epoch).ToLocalTime();
+        }
+        return null;
+    }
+
+    private static string CachePath =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NEXMC", CacheFileName);
+
+    private static UpdateCache? LoadCache()
+    {
+        try
+        {
+            if (!File.Exists(CachePath)) return null;
+            var cache = JsonSerializer.Deserialize<UpdateCache>(File.ReadAllText(CachePath));
+            return cache is { Json.Length: > 0 } ? cache : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static void SaveCache(UpdateCache cache)
+    {
+        try
+        {
+            var path = CachePath;
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            var temp = path + ".tmp";
+            File.WriteAllText(temp, JsonSerializer.Serialize(cache));
+            File.Move(temp, path, true);
+        }
+        catch
+        {
+            // 缓存失败不影响更新检查。
         }
     }
 
@@ -328,6 +427,13 @@ public sealed class UpdateService
             hash.AppendData(buffer, 0, read);
         }
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
+    }
+
+    private sealed class UpdateCache
+    {
+        public string Json { get; set; } = "";
+        public string ETag { get; set; } = "";
+        public DateTimeOffset CheckedAt { get; set; }
     }
 
     private sealed record GitHubAsset(string Name, string Url);

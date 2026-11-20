@@ -2297,7 +2297,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         try
         {
-            var result = await _updateService.CheckAsync(UpdateService.GetCurrentVersion(), _closingCancellation.Token);
+            var result = await _updateService.CheckAsync(UpdateService.GetCurrentVersion(), manual, _closingCancellation.Token);
             if (UpdateStateText is not null) UpdateStateText.Text = result.Message;
 
             if (result.HasUpdate && result.Update is not null)
