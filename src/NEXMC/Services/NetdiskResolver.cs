@@ -240,7 +240,7 @@ public sealed class NetdiskResolver
     {
         status?.Report("检测到直链文件，正在读取文件信息…");
         using var head = new HttpRequestMessage(HttpMethod.Head, link.OriginalUrl);
-        head.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.5");
+        head.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.6");
         using var headResponse = await ApiClient.SendAsync(head, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
         var fileName = headResponse.Content.Headers.ContentDisposition?.FileNameStar
@@ -251,12 +251,12 @@ public sealed class NetdiskResolver
         {
             if (string.IsNullOrWhiteSpace(fileName)) fileName = "modpack.zip";
             return new ResolvedNetdiskFile(fileName, size, link.OriginalUrl, string.Empty,
-                "NEXMC/1.1.5", string.Empty, NetdiskPlatform.Direct);
+                "NEXMC/1.1.6", string.Empty, NetdiskPlatform.Direct);
         }
 
         // 部分直链服务器不支持 HEAD；用 1 字节 Range 重新确认。
         using var probe = new HttpRequestMessage(HttpMethod.Get, link.OriginalUrl);
-        probe.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.5");
+        probe.Headers.TryAddWithoutValidation("User-Agent", "NEXMC/1.1.6");
         probe.Headers.TryAddWithoutValidation("Range", "bytes=0-0");
         using var probeResponse = await ApiClient.SendAsync(probe, HttpCompletionOption.ResponseHeadersRead, ct)
             .ConfigureAwait(false);
@@ -270,7 +270,7 @@ public sealed class NetdiskResolver
         if (string.IsNullOrWhiteSpace(fileName)) fileName = "modpack.zip";
         size = probeResponse.Content.Headers.ContentRange?.Length ?? size;
         return new ResolvedNetdiskFile(fileName, size, link.OriginalUrl, string.Empty,
-            "NEXMC/1.1.5", string.Empty, NetdiskPlatform.Direct);
+            "NEXMC/1.1.6", string.Empty, NetdiskPlatform.Direct);
     }
 
     private async Task<ResolvedNetdiskFile> ResolveQuarkAsync(ParsedNetdiskLink link, string cookie,

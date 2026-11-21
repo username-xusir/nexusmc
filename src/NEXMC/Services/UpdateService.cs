@@ -187,6 +187,11 @@ public sealed class UpdateService
                              asset.Name.Contains("banner", StringComparison.OrdinalIgnoreCase) &&
                              new[] { ".png", ".jpg", ".jpeg", ".webp" }.Any(extension =>
                                  asset.Name.EndsWith(extension, StringComparison.OrdinalIgnoreCase)));
+            var bannerUrl = banner?.Url;
+            if (string.IsNullOrWhiteSpace(bannerUrl))
+            {
+                bannerUrl = BuildFallbackBannerUrl(tag, versionText);
+            }
 
             var info = new UpdateInfo(
                 versionText,
@@ -197,7 +202,7 @@ public sealed class UpdateService
                 installer.Name,
                 shaAsset?.Url ?? "",
                 sha,
-                banner?.Url,
+                bannerUrl,
                 publishedAt);
 
             return new UpdateCheckResult(true, info, $"发现新版本 {versionText}。");
@@ -211,6 +216,13 @@ public sealed class UpdateService
             return new UpdateCheckResult(false, null,
                 "检查更新失败：" + exception.GetBaseException().Message, true);
         }
+    }
+
+    internal static string BuildFallbackBannerUrl(string tag, string version)
+    {
+        var tagName = string.IsNullOrWhiteSpace(tag) ? "v" + version : tag.Trim();
+        return $"https://raw.githubusercontent.com/{Repository}/{Uri.EscapeDataString(tagName)}" +
+               $"/assets/updates/{Uri.EscapeDataString(version)}-dark.png";
     }
 
     internal static string DescribeHttpFailure(HttpResponseMessage response)

@@ -120,6 +120,52 @@ public sealed class UpdateServiceTests
     }
 
     [Fact]
+    public void MissingBannerAssetFallsBackToVersionedRawUrl()
+    {
+        var fixture = Path.Combine(Path.GetTempPath(), "nexmc-update-test-" + Guid.NewGuid().ToString("N") + ".json");
+        File.WriteAllText(fixture, """
+            {
+              "tag_name": "v1.1.6",
+              "name": "NEXMC 1.1.6",
+              "body": "banner fallback",
+              "assets": [
+                {
+                  "name": "NEXMC-Setup-1.1.6.exe",
+                  "browser_download_url": "https://github.com/username-xusir/nexusmc/releases/download/v1.1.6/NEXMC-Setup-1.1.6.exe"
+                }
+              ]
+            }
+            """);
+
+        try
+        {
+            UpdateCheckResult result;
+            lock (EnvironmentLock)
+            {
+                Environment.SetEnvironmentVariable("NEXMC_UPDATE_TEST_RELEASE", fixture);
+                try
+                {
+                    result = new UpdateService().CheckAsync(new Version(1, 1, 5)).GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    Environment.SetEnvironmentVariable("NEXMC_UPDATE_TEST_RELEASE", null);
+                }
+            }
+
+            Assert.True(result.HasUpdate);
+            Assert.NotNull(result.Update);
+            Assert.Equal(
+                "https://raw.githubusercontent.com/username-xusir/nexusmc/v1.1.6/assets/updates/1.1.6-dark.png",
+                result.Update!.BannerUrl);
+        }
+        finally
+        {
+            File.Delete(fixture);
+        }
+    }
+
+    [Fact]
     public void ForbiddenResponseReportsRateLimitResetTime()
     {
         using var response = new HttpResponseMessage(HttpStatusCode.Forbidden);
