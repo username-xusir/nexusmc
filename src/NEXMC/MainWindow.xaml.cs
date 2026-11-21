@@ -2392,7 +2392,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         StatusText.Foreground = isError
             ? (Brush)FindResource("DangerBrush")
             : (Brush)FindResource("MutedBrush");
-        StatusBorder.Background = new SolidColorBrush(isError ? Color.FromRgb(235, 235, 235) : Color.FromRgb(242, 242, 242));
+        StatusBorder.Background = new SolidColorBrush(isError ? Color.FromRgb(26, 16, 16) : Color.FromRgb(16, 16, 16));
         if (isError)
         {
             ShowErrorBanner(message);

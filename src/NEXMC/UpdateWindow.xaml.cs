@@ -138,15 +138,16 @@ public partial class UpdateWindow : Wpf.Ui.Controls.FluentWindow
                 case ReleaseNoteKind.Code:
                     ReleaseNotesPanel.Children.Add(new Border
                     {
-                        Background = new SolidColorBrush(Color.FromRgb(244, 244, 244)),
-                        CornerRadius = new CornerRadius(5),
-                        Padding = new Thickness(9, 5, 9, 5),
+                        Background = new SolidColorBrush(Color.FromRgb(27, 27, 27)),
+                        CornerRadius = new CornerRadius(18),
+                        Padding = new Thickness(12, 7, 12, 7),
                         Margin = new Thickness(0, 3, 0, 3),
                         Child = new TextBlock
                         {
                             Text = line.Text,
                             FontFamily = new FontFamily("Consolas, Microsoft YaHei UI"),
                             FontSize = 11.5,
+                            Foreground = (Brush)FindResource("TextBrush"),
                             TextWrapping = TextWrapping.Wrap
                         }
                     });
