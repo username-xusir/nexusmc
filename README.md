@@ -5,7 +5,7 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](https://dotnet.microsoft.com/)
 [![Windows](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4.svg)](#系统要求)
-[![Version](https://img.shields.io/badge/version-1.1.7-black.svg)](docs/1.1.7-更新说明.md)
+[![Version](https://img.shields.io/badge/version-1.1.8-black.svg)](docs/1.1.8-更新说明.md)
 
 > NEXMC 是第三方二次创作，不是 PCL 官方版本。PCL 下载组件的版权归龙腾猫跃所有，详见 [NOTICE](NOTICE) 与 [licenses/PCL-LICENCE.txt](licenses/PCL-LICENCE.txt)。
 
@@ -32,16 +32,16 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 - **校验**：安装完成后校验版本 JSON、客户端 JAR、libraries、assets。
 - **名人堂**：设置页可查看鸣谢。
 
-## 1.1.7 更新
+## 1.1.8 更新
 
-- 修复更新窗口里“产物”和 SHA-256 代码块白底白字的问题；代码块改为深底浅字、18px 圆角。
-- 修复状态栏在错误/普通状态下被改成浅色背景的问题，保持深色。
-- 加入 1.1.7 更新横幅。
+- 安装结果窗口的目标卡片去掉淡色描边，改为深色背景 + 阴影，圆角统一 18px。
+- 加入 1.1.8 更新横幅。
+- 保留 1.1.7 的深色代码块、状态栏修复。
 - 保留 1.1.6 的 Release 横幅 raw GitHub 兜底。
 - 保留 1.1.5 的深色主题、统一 18px 圆角、阴影代替描边和圆角滚动条。
 - 保留 1.1.3 的夸克 412 修复和 1.1.2 的更新检查缓存。
 
-完整记录见 [CHANGELOG.md](CHANGELOG.md) 和 [1.1.7 更新说明](docs/1.1.7-更新说明.md)。
+完整记录见 [CHANGELOG.md](CHANGELOG.md) 和 [1.1.8 更新说明](docs/1.1.8-更新说明.md)。
 
 ![整合包列表](docs/images/modpacks.png)
 
@@ -52,17 +52,17 @@ Windows 上的 Minecraft Java 版本与整合包下载器。基于 **PCL 2.12.7.
 安装包已放在本仓库根目录：
 
 ```text
-NEXMC-Setup-1.1.7.exe
-NEXMC-Setup-1.1.7.sha256.txt
+NEXMC-Setup-1.1.8.exe
+NEXMC-Setup-1.1.8.sha256.txt
 ```
 
-1. 运行 `NEXMC-Setup-1.1.7.exe`，按向导安装到当前用户目录，无需管理员权限。
+1. 运行 `NEXMC-Setup-1.1.8.exe`，按向导安装到当前用户目录，无需管理员权限。
 2. 从开始菜单或桌面快捷方式启动。
 3. 顶部下拉框选择安装目标；找不到启动器时点 `+`，选择启动器 EXE 或 `.minecraft` 目录。
 4. 需要校验安装包时：
 
 ```powershell
-Get-FileHash .\NEXMC-Setup-1.1.7.exe -Algorithm SHA256
+Get-FileHash .\NEXMC-Setup-1.1.8.exe -Algorithm SHA256
 ```
 
 安装包是 self-contained 构建，已经包含 .NET 10 运行时；普通用户安装后直接运行，不需要另外安装 .NET。只有从源码编译时才需要 .NET 10 SDK。
@@ -99,7 +99,7 @@ bun install
 powershell -ExecutionPolicy Bypass -File build/package.ps1
 ```
 
-`package.ps1` 会优先使用 `tools\dotnet\dotnet.exe`（如果存在），否则使用 PATH 中的 `dotnet`。产物在 `dist\installer\NEXMC-Setup-1.1.7.exe`。
+`package.ps1` 会优先使用 `tools\dotnet\dotnet.exe`（如果存在），否则使用 PATH 中的 `dotnet`。产物在 `dist\installer\NEXMC-Setup-1.1.8.exe`。
 
 ## 项目结构
 
